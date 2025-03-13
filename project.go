@@ -97,8 +97,8 @@ func init() {
 	quiet = ProjCmd.PersistentFlags().BoolP("quiet", "q", false, "Return id only")
 	noPager = ProjCmd.PersistentFlags().BoolP("no-pager", "P", false, "Disable pager")
 	asJson = ProjLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
-	asJsonList = ProjLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json")
-	cols = ProjLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "As json")
+	asJsonList = ProjLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
+	cols = ProjLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "Set columns")
 
 	rootCmd.AddCommand(ProjCmd)
 }

@@ -98,8 +98,8 @@ func init() {
 	quiet = WsCmd.PersistentFlags().BoolP("quiet", "q", false, "Return id only")
 	noPager = WsCmd.PersistentFlags().BoolP("no-pager", "P", false, "Disable pager")
 	asJson = WsLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
-	asJsonList = WsLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json")
-	cols = WsLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "As json")
+	asJsonList = WsLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
+	cols = WsLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "Set columns")
 
 	rootCmd.AddCommand(WsCmd)
 }
