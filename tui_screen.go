@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-	"sync"
 
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
@@ -16,13 +15,17 @@ const EscapeRune = '\\'
 
 // Define styles and colors used in the TUI interface.
 var (
+	// Default font color for the tui
 	FontColor = tc.ColorWhite
 
+	// Default font color for the tui
+	bgColor = tc.ColorBlack
+
 	// Style for command field
-	CmdFieldStyle = tc.StyleDefault.Foreground(FontColor)
+	CmdFieldStyle = tc.StyleDefault.Foreground(FontColor).Background(bgColor)
 
 	// Style for buttons
-	BtnStyle = tc.StyleDefault.Foreground(FontColor)
+	BtnStyle = tc.StyleDefault.Foreground(FontColor).Background(bgColor)
 
 	// Style for active buttons
 	ActiveBtnStyle = BtnStyle
@@ -52,11 +55,12 @@ func NewScreen(app *tv.Application) *Screen {
 // CreateMainPane generates the app main widgets (main frame, input field and
 // the place where the different pages wil be).
 func (s *Screen) CreateMainPane() (*tv.Flex, *tv.Pages, *tv.InputField) {
-	mainPane := tv.NewFlex().SetDirection(tv.FlexRow)
 	pages := s.CreatePages()
 	cmdField := s.CreateCmdField()
 
-	mainPane.AddItem(pages, 0, 1, false).
+	mainPane := tv.NewFlex().
+		SetDirection(tv.FlexRow).
+		AddItem(pages, 0, 1, false).
 		AddItem(cmdField, 1, 0, false)
 
 	return mainPane, pages, cmdField
@@ -80,47 +84,130 @@ func (s *Screen) GetPages() map[string]tv.Primitive {
 	}
 }
 
-// CreateProjsScreen generates a workspace selecting screen.
+// CreateProjsScreen generates a workspace selecting screenfunc
 func (s *Screen) CreateProjsScreen() *tv.Flex {
-	projGrid := tv.NewGrid()
-	projGrid.SetBorder(true).
-		SetTitle("Projects").
-		SetInputCapture(s.IgnoreNonMotion)
-	wrkGrid := tv.NewGrid()
-	wrkGrid.SetBorder(true).
-		SetTitle("Workspaces").
-		SetInputCapture(s.IgnoreNonMotion)
+	projMatrix := NewMatrix()
+	wrkMatrix := NewMatrix()
+	projMatrix.
+		SetWidth(1).
+		SetHeight(6).
+		SetBorder(true).
+		SetFocusFunc(s.MatrixOnFocus(projMatrix)).
+		SetInputCapture(s.ProjMatrixInputCapture(projMatrix, wrkMatrix))
+	wrkMatrix.
+		SetWidth(5).
+		SetHeight(5).
+		SetBorder(true).
+		SetFocusFunc(s.MatrixOnFocus(wrkMatrix)).
+		SetInputCapture(s.WrkMatrixInputCapture(wrkMatrix))
 
-	projMatrix := NewMatrix(projGrid)
-	wrkMatrix := NewMatrix(wrkGrid)
-
+	s.focus = projMatrix
 	s.PopulateProjects(projMatrix, wrkMatrix)
-
 	s.PopulateWorkspaces("", wrkMatrix)
+
 	workspacePane := tv.NewFlex().
-		AddItem(projGrid, 0, 1, false).
-		AddItem(wrkGrid, 0, 5, false)
+		AddItem(projMatrix, 0, 1, false).
+		AddItem(wrkMatrix, 0, 5, false)
 	return workspacePane
+}
+
+// MatrixOnFocus returns a func to be used as a callback for a Matrix focus.
+func (s *Screen) MatrixOnFocus(m *Matrix) func() {
+	return func() {
+		if len(m.itms) != 0 {
+			s.app.SetFocus(m.itms[0])
+		}
+	}
+}
+
+// ProjMatrixInputCapture returns a input capture func that will wait for a
+// Escape or 'q' key press and will reload all the workspaces. It will ignore
+// any other input and pass it to the default matrix input capture function.
+func (s *Screen) ProjMatrixInputCapture(projMatrix, wrkMatrix *Matrix) InputFn {
+	return func(event *tc.EventKey) *tc.EventKey {
+		if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
+			s.PopulateWorkspaces("", wrkMatrix)
+			s.app.SetFocus(s.cmd)
+			return nil
+		}
+		fn := s.MatrixInputCapture(projMatrix)
+		return fn(event)
+	}
+}
+
+// WrkMatrixInputCapture returns a input capture func that will wait for a
+// Escape or 'q' key press and will reload all the workspaces. It will ignore
+// any other input and pass it to the default matrix input capture function.
+func (s *Screen) WrkMatrixInputCapture(wrkMatrix *Matrix) InputFn {
+	return func(event *tc.EventKey) *tc.EventKey {
+		if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
+			s.PopulateWorkspaces("", wrkMatrix)
+			s.app.SetFocus(s.cmd)
+			return nil
+		}
+		fn := s.MatrixInputCapture(wrkMatrix)
+		return fn(event)
+	}
+}
+
+// MatrixInputCapture will return an input capture function and will accept
+// vim motions to control the selected element in the grid.
+func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
+	return func(event *tc.EventKey) *tc.EventKey {
+		switch {
+		case event.Key() == tc.KeyLeft || event.Rune() == 'h':
+			m.Left()
+		case event.Key() == tc.KeyRight || event.Rune() == 'l':
+			m.Right()
+		case event.Key() == tc.KeyUp || event.Rune() == 'k':
+			m.Up()
+		case event.Key() == tc.KeyDown || event.Rune() == 'j':
+			m.Down()
+		default:
+			return event
+		}
+		p := m.GetCurrentPrimitive()
+		if p != nil {
+			s.app.SetFocus(p)
+		}
+		return nil
+	}
 }
 
 // PopulateProjects loads the project grid with all the projects found in the
 // *insomnium.Insomnium global instance.
 func (s *Screen) PopulateProjects(projMatrix, wrkMatrix *Matrix) {
-	once := &sync.Once{}
-	for n, proj := range inso.Projects {
+	for _, proj := range inso.Projects {
 		projectButton := s.CreateProjBtn(proj, wrkMatrix)
-		item := projMatrix.Set(projectButton, 0, n)
 		projectButton.SetStyle(BtnStyle).
 			SetActivatedStyle(ActiveBtnStyle).
 			SetSelectedFunc(s.SelectProjBtn(proj.ID, wrkMatrix)).
 			SetBorder(true).
-			SetFocusFunc(s.FocusProjBtn(proj.ID, wrkMatrix)).
-			SetInputCapture(s.ProjInputFn(item, wrkMatrix))
-		once.Do(func() { s.focus = projectButton })
+			SetFocusFunc(s.FocusProjBtn(proj.ID, wrkMatrix))
+		projMatrix.itms = append(projMatrix.itms, projectButton)
 	}
-	for _, i := range projMatrix.All() {
-		projMatrix.grid.AddItem(i.t, i.y, i.x, 1, 1, 3, 3, false)
+
+	projMatrix.Refresh()
+}
+
+// PopulateWorkspaces uses an id to populate the workspace matrix with
+// workspaces whose ParentID equals the given id. When "" is passed,
+// the matrix is populated with all workspaces.
+func (s *Screen) PopulateWorkspaces(id string, m *Matrix) {
+	m.itms = []tv.Primitive{}
+	for _, wrk := range inso.Workspaces {
+		if id != "" && id != wrk.ParentID {
+			continue
+		}
+		btn := tv.NewButton(wrk.Name)
+		btn.SetStyle(BtnStyle).
+			SetActivatedStyle(ActiveBtnStyle).
+			SetSelectedFunc(s.WrkBtnSelFunc).
+			SetBorder(true)
+		m.itms = append(m.itms, btn)
 	}
+
+	m.Refresh()
 }
 
 // CreateProjBtn generates a button that selects the given project.
@@ -167,75 +254,7 @@ func (s *Screen) SelectProjBtn(id string, m *Matrix) func() {
 		if !ok {
 			s.app.SetFocus(s.cmd)
 		} else {
-			s.app.SetFocus(fb.t)
-		}
-	}
-}
-
-// ProjInputFn is called for every input when a project button is focused. It
-// detects motion (arrow keys and hjkl), selection (enter) and quit (Escape key
-// and q) commands.
-func (s *Screen) ProjInputFn(projItem *MatrixItem, wrkMatrix *Matrix) InputFn {
-	return func(key *tc.EventKey) *tc.EventKey {
-		fn := s.MotionInput(projItem)
-		fn(key)
-		switch {
-		case key.Key() == tc.KeyEsc || key.Rune() == 'q':
-			s.PopulateWorkspaces("", wrkMatrix)
-		case key.Key() == tc.KeyEnter:
-			return key
-		default:
-		}
-		return nil
-	}
-}
-
-// MotionInput detects arrow keys and vim motions (hjkl) and changes the
-// selected item of a *Matrix.
-func (s *Screen) MotionInput(sb *MatrixItem) InputFn {
-	return func(key *tc.EventKey) *tc.EventKey {
-		var p tv.Primitive
-		switch {
-		case key.Key() == tc.KeyDown || key.Rune() == 'j':
-			p = sb.Down().t
-		case key.Key() == tc.KeyUp || key.Rune() == 'k':
-			p = sb.Up().t
-		case key.Key() == tc.KeyRight || key.Rune() == 'l':
-			p = sb.Right().t
-		case key.Key() == tc.KeyLeft || key.Rune() == 'h':
-			p = sb.Left().t
-		case key.Key() == tc.KeyEsc || key.Rune() == 'q':
-			p = s.cmd
-		default:
-		}
-		s.app.SetFocus(p)
-		return key
-	}
-}
-
-// PopulateWorkspaces loads in the grid all the workspaces whose ParentID are
-// equal to the given id. If the id arg is "", the func populates the grid with
-// no filter.
-func (s *Screen) PopulateWorkspaces(id string, m *Matrix) {
-	m.Clear()
-	m.grid.Clear()
-	var n int
-	for _, wrk := range inso.Workspaces {
-		if id != "" && wrk.ParentID != id {
-			continue
-		}
-		btn := tv.NewButton(wrk.Name)
-		lmi := m.Set(btn, n%5, n/5)
-		btn.SetStyle(BtnStyle).
-			SetActivatedStyle(ActiveBtnStyle).
-			SetSelectedFunc(s.WrkBtnSelFunc).
-			SetBorder(true).
-			SetInputCapture(s.MotionInput(lmi))
-		n++
-	}
-	for _, i := range m.All() {
-		if i != nil {
-			m.grid.AddItem(i.t, i.y, i.x, 1, 1, 1, 1, false)
+			s.app.SetFocus(fb)
 		}
 	}
 }
@@ -370,109 +389,167 @@ func (s *Screen) ErrorMessage(msg string) {
 }
 
 // NewMatrix returns a new instance of a matrix that holds a *tview.Grid
-func NewMatrix(grid *tv.Grid) *Matrix {
+func NewMatrix() *Matrix {
+	grid := tv.NewGrid()
+	buttonUp := tv.NewButton("△")
+	buttonUp.SetStyle(BtnStyle)
+	buttonDown := tv.NewButton("▽")
+	buttonDown.SetStyle(BtnStyle)
+	flex := tv.NewFlex().
+		SetDirection(tv.FlexRow).
+		AddItem(buttonUp, 0, 0, false).
+		AddItem(grid, 0, 1, false).
+		AddItem(buttonDown, 0, 0, false)
 	return &Matrix{
-		grid: grid,
+		Flex:       flex,
+		Grid:       grid,
+		ButtonUp:   buttonUp,
+		ButtonDown: buttonDown,
 	}
 }
 
 // Matrix holds a *tview.Grid and is used to help setting a motion between the
 // elements without loosing track of the individual objects.
 type Matrix struct {
-	grid  *tv.Grid
-	items [][]*MatrixItem
+	*tv.Flex
+	Grid         *tv.Grid
+	ButtonUp     *tv.Button
+	ButtonDown   *tv.Button
+	currX, currY int
+	skip         int
+	w, h         int
+	itms         []tv.Primitive
+}
+
+// SetWidth sets the number of columns in the matrix grid.
+func (m *Matrix) SetWidth(w int) *Matrix {
+	m.w = w
+	return m
+}
+
+// SetHeight sets the number of rows in the matrix grid.
+func (m *Matrix) SetHeight(h int) *Matrix {
+	m.h = h
+	return m
+}
+
+// Regresh reloads and reorders the grid elements.
+func (m *Matrix) Refresh() {
+	m.Grid.Clear()
+	for n := m.skip * m.w; n < (m.h*m.w)+m.skip*m.w; n++ {
+		var itm tv.Primitive
+		if n < len(m.itms) {
+			itm = m.itms[n]
+		} else {
+			itm = tv.NewBox()
+		}
+		x := n % m.w
+		y := n / m.w
+		m.Grid.AddItem(itm, y-m.skip, x, 1, 1, 1, 1, false)
+	}
+	if m.skip > 0 {
+		m.Flex.ResizeItem(m.ButtonUp, 1, 0)
+	} else {
+		m.Flex.ResizeItem(m.ButtonUp, 0, 0)
+	}
+	a := ((len(m.itms) + m.w - 1) / m.w) - m.skip - m.h
+	if a > 0 {
+		m.Flex.ResizeItem(m.ButtonDown, 1, 0)
+	} else {
+		m.Flex.ResizeItem(m.ButtonDown, 0, 0)
+	}
+}
+
+// RefreshY checks if the selected cell is within the visible range. If it is
+// not, it adjusts the range so the element can be displayed and then refreshes
+// the grid.
+func (m *Matrix) RefreshY() {
+	if m.currY > m.skip+m.h-1 {
+		m.skip++
+		m.Refresh()
+	} else if m.currY < m.skip {
+		m.skip--
+		m.Refresh()
+	}
+}
+
+// Left moves the selected x position one cell to the left. If the current row
+// is the last one, it means the current x position might be beyond the last
+// element in the list, because the last row is the only one that may not be
+// fully populated. In this case, it adjusts the x position to refer to the last
+// element in the list.
+func (m *Matrix) Left() {
+	if m.currX > 0 {
+		m.currX--
+	}
+	lastRow := len(m.itms) / m.w
+	lastRowLimit := (len(m.itms) % m.w) - 1
+	if m.currY == lastRow {
+		m.currX = min(m.currX, lastRowLimit)
+	}
+}
+
+// Right moves the selected x position one cell to the right. If the new cell is
+// beyond the current row limit, it does nothing.
+func (m *Matrix) Right() {
+	lastRow := len(m.itms) / m.w
+	currLineLimit := m.w
+	if m.currY == lastRow {
+		currLineLimit = (len(m.itms) % m.w) - 1
+	}
+	if m.currX < currLineLimit {
+		m.currX++
+	}
+}
+
+// Up moves the selected y position one cell up, unless it would result in a
+// negative y position. It also calls the function that updates the range, which
+// adjusts it if necessary and refreshes the grid.
+func (m *Matrix) Up() {
+	if m.currY > 0 {
+		m.currY--
+	}
+	m.RefreshY()
+}
+
+// Down moves the selected y position one cell down, unless it would exceed the
+// last row. It also calls the function that updates the range, which adjusts it
+// if necessary and refreshes the grid.
+func (m *Matrix) Down() {
+	lastRow := len(m.itms) / m.w
+	if m.currY < lastRow {
+		m.currY++
+	}
+	m.RefreshY()
 }
 
 // Get returns the item for the given location. If there is no item, it returns
 // nil and the returned boolean is set to false.
-func (lm *Matrix) Get(x, y int) (*MatrixItem, bool) {
-	if y >= len(lm.items) {
+func (m *Matrix) Get(x, y int) (tv.Primitive, bool) {
+	if len(m.itms) == 0 {
 		return nil, false
 	}
-	if x >= len(lm.items[y]) {
-		return nil, false
-	}
-	return lm.items[y][x], true
-}
-
-// Set is used to set a button as the item in the given location.
-func (lm *Matrix) Set(t *tv.Button, x, y int) *MatrixItem {
-	if cap(lm.items) <= y {
-		n := make([][]*MatrixItem, y+1)
-		copy(n, lm.items)
-		lm.items = n
-	}
-	if cap(lm.items[y]) <= x {
-		n := make([]*MatrixItem, x+1)
-		copy(n, lm.items[y])
-		lm.items[y] = n
-	}
-	lmi := &MatrixItem{parent: lm, x: x, y: y, t: t}
-	lm.items[y][x] = lmi
-	return lmi
-}
-
-// All returns all of the matrix items as a list.
-func (lm *Matrix) All() (res []*MatrixItem) {
-	for _, row := range lm.items {
-		for _, item := range row {
-			res = append(res, item)
+	i := (y * m.w) + x
+	if i >= len(m.itms) {
+		if i <= m.w*((len(m.itms)+m.w-1)/m.w) {
+			return m.itms[len(m.itms)-1], true
+		} else {
+			return nil, false
 		}
 	}
-	return
+	return m.itms[i], true
 }
 
-// Clear removes all of the matrix items
-func (lm *Matrix) Clear() {
-	lm.items = nil
-}
-
-// MatrixItem should be used as a sub element of Matrix and it stores a
-// *tview.Button, wich is the type that is used in the app as a grid cell.
-type MatrixItem struct {
-	parent *Matrix
-	x, y   int
-	t      *tv.Button
-}
-
-// Right returns the element to the right, or the leftmost element if the
-// current one is the rightmost.
-func (lmi *MatrixItem) Right() *MatrixItem {
-	if lmi.x == len(lmi.parent.items[lmi.y])-1 {
-		return lmi.parent.items[lmi.y][0]
-	}
-	return lmi.parent.items[lmi.y][lmi.x+1]
-}
-
-// Left returns the element to the left, or the rightmost element if the current
-// one is the leftmost.
-func (lmi *MatrixItem) Left() *MatrixItem {
-	if lmi.x == 0 {
-		return lmi.parent.items[lmi.y][len(lmi.parent.items[lmi.y])-1]
-	}
-	return lmi.parent.items[lmi.y][lmi.x-1]
-}
-
-// Up returns the element above, or the lowermost element if the current one is
-// the topmost.
-func (lmi *MatrixItem) Up() *MatrixItem {
-	if lmi.y == 0 {
-		lastRow := lmi.parent.items[len(lmi.parent.items)-1]
-		return lastRow[min(lmi.x, len(lastRow)-1)]
-	}
-	lastRow := lmi.parent.items[lmi.y-1]
-	return lastRow[min(lmi.x, len(lastRow)-1)]
-}
-
-// Down returns the element below, or the uppermost element if the current one
-// is the bottommost.
-func (lmi *MatrixItem) Down() *MatrixItem {
-	if lmi.y == len(lmi.parent.items)-1 {
-		firstRow := lmi.parent.items[0]
-		return firstRow[min(len(firstRow), lmi.x)]
-	}
-	firstRow := lmi.parent.items[lmi.y+1]
-	return firstRow[min(len(firstRow)-1, lmi.x)]
+// GetCurrentPrimitive returns the currently selected cell. If the position
+// refers to a blank spot in the grid, it adjusts it accordingly.
+func (m *Matrix) GetCurrentPrimitive() tv.Primitive {
+	totalRows := (len(m.itms) + m.w - 1) / m.w
+	m.currX = max(m.currX, 0)
+	m.currX = min(m.currX, m.w-1)
+	m.currY = max(m.currY, 0)
+	m.currY = min(m.currY, totalRows-1)
+	curr, _ := m.Get(m.currX, m.currY)
+	return curr
 }
 
 // InputFn defines a function type used by tview to capture input, taking a
