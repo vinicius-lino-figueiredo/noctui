@@ -1,0 +1,180 @@
+package tui
+
+import (
+	tv "github.com/rivo/tview"
+)
+
+// NewMatrix creates and returns a new Matrix instance that consists of a grid
+// for displaying content and two navigation buttons (up and down) arranged
+// vertically using a Flex container. The buttons are styled and positioned
+// above and below the grid. This function initializes the layout, setting up
+// the Flex container with buttons and a grid, but it doesn't handle the logic
+// related to button actions or the dynamic content of the grid, which are
+// managed separately.
+func NewMatrix() *Matrix {
+	grid := tv.NewGrid()
+	buttonUp := tv.NewButton("△")
+	buttonUp.SetStyle(BtnStyle)
+	buttonDown := tv.NewButton("▽")
+	buttonDown.SetStyle(BtnStyle)
+	flex := tv.NewFlex().
+		SetDirection(tv.FlexRow).
+		AddItem(buttonUp, 0, 0, false).
+		AddItem(grid, 0, 1, false).
+		AddItem(buttonDown, 0, 0, false)
+	return &Matrix{
+		Flex:       flex,
+		Grid:       grid,
+		ButtonUp:   buttonUp,
+		ButtonDown: buttonDown,
+	}
+}
+
+// Matrix represents a UI component consisting of a grid (Grid) and two
+// navigation buttons (up and down). The buttons serve to indicate whether there
+// is more content above or below the grid, adjusting the visibility of the
+// content as the user navigates. The structure keeps track of the selected
+// position (currX, currY), the number of rows and columns (w, h), the list of
+// items to be displayed (itms), and the skip variable, which manages the offset
+// of the visible content in the grid.
+type Matrix struct {
+	*tv.Flex
+	Grid         *tv.Grid
+	ButtonUp     *tv.Button
+	ButtonDown   *tv.Button
+	currX, currY int
+	skip         int
+	w, h         int
+	itms         []tv.Primitive
+}
+
+// SetWidth sets the number of columns in the matrix grid.
+func (m *Matrix) SetWidth(w int) *Matrix {
+	m.w = w
+	return m
+}
+
+// SetHeight sets the number of rows in the matrix grid.
+func (m *Matrix) SetHeight(h int) *Matrix {
+	m.h = h
+	return m
+}
+
+// Regresh reloads and reorders the grid elements.
+func (m *Matrix) Refresh() {
+	m.Grid.Clear()
+	for n := m.skip * m.w; n < (m.h*m.w)+m.skip*m.w; n++ {
+		var itm tv.Primitive
+		if n < len(m.itms) {
+			itm = m.itms[n]
+		} else {
+			itm = tv.NewBox()
+		}
+		x := n % m.w
+		y := n / m.w
+		m.Grid.AddItem(itm, y-m.skip, x, 1, 1, 1, 1, false)
+	}
+	if m.skip > 0 {
+		m.Flex.ResizeItem(m.ButtonUp, 1, 0)
+	} else {
+		m.Flex.ResizeItem(m.ButtonUp, 0, 0)
+	}
+	a := ((len(m.itms) + m.w - 1) / m.w) - m.skip - m.h
+	if a > 0 {
+		m.Flex.ResizeItem(m.ButtonDown, 1, 0)
+	} else {
+		m.Flex.ResizeItem(m.ButtonDown, 0, 0)
+	}
+}
+
+// RefreshY checks if the selected cell is within the visible range. If it is
+// not, it adjusts the range so the element can be displayed and then refreshes
+// the grid.
+func (m *Matrix) RefreshY() {
+	if m.currY > m.skip+m.h-1 {
+		m.skip++
+		m.Refresh()
+	} else if m.currY < m.skip {
+		m.skip--
+		m.Refresh()
+	}
+}
+
+// Left moves the selected x position one cell to the left. If the current row
+// is the last one, it means the current x position might be beyond the last
+// element in the list, because the last row is the only one that may not be
+// fully populated. In this case, it adjusts the x position to refer to the last
+// element in the list.
+func (m *Matrix) Left() {
+	if m.currX > 0 {
+		m.currX--
+	}
+	lastRow := len(m.itms) / m.w
+	lastRowLimit := (len(m.itms) % m.w) - 1
+	if m.currY == lastRow {
+		m.currX = min(m.currX, lastRowLimit)
+	}
+}
+
+// Right moves the selected x position one cell to the right. If the new cell is
+// beyond the current row limit, it does nothing.
+func (m *Matrix) Right() {
+	lastRow := len(m.itms) / m.w
+	currLineLimit := m.w
+	if m.currY == lastRow {
+		currLineLimit = (len(m.itms) % m.w) - 1
+	}
+	if m.currX < currLineLimit {
+		m.currX++
+	}
+}
+
+// Up moves the selected y position one cell up, unless it would result in a
+// negative y position. It also calls the function that updates the range, which
+// adjusts it if necessary and refreshes the grid.
+func (m *Matrix) Up() {
+	if m.currY > 0 {
+		m.currY--
+	}
+	m.RefreshY()
+}
+
+// Down moves the selected y position one cell down, unless it would exceed the
+// last row. It also calls the function that updates the range, which adjusts it
+// if necessary and refreshes the grid.
+func (m *Matrix) Down() {
+	lastRow := len(m.itms) / m.w
+	if m.currY < lastRow {
+		m.currY++
+	}
+	m.RefreshY()
+}
+
+// Get returns the item for the given location. If there is no item, it returns
+// nil and the returned boolean is set to false.
+func (m *Matrix) Get(x, y int) (tv.Primitive, bool) {
+	if len(m.itms) == 0 {
+		return nil, false
+	}
+	i := (y * m.w) + x
+	if i >= len(m.itms) {
+		if i <= m.w*((len(m.itms)+m.w-1)/m.w) {
+			return m.itms[len(m.itms)-1], true
+		} else {
+			return nil, false
+		}
+	}
+	return m.itms[i], true
+}
+
+// GetCurrentPrimitive returns the currently selected cell. If the position
+// refers to a blank spot in the grid, it adjusts it accordingly.
+func (m *Matrix) GetCurrentPrimitive() tv.Primitive {
+	totalRows := (len(m.itms) + m.w - 1) / m.w
+	m.currX = max(m.currX, 0)
+	m.currX = min(m.currX, m.w-1)
+	m.currY = max(m.currY, 0)
+	m.currY = min(m.currY, totalRows-1)
+	curr, _ := m.Get(m.currX, m.currY)
+	return curr
+}
