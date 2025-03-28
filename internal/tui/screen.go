@@ -48,6 +48,8 @@ type Screen struct {
 	focus tv.Primitive
 	// The project/workspace selection page
 	proj *ProjPage
+	// The workspace viewer page
+	wrk *WrkPage
 }
 
 // NewScreen creates a new *Scree instance with default layout.
@@ -74,6 +76,7 @@ func (s *Screen) appInputCapture(event *tc.EventKey) *tc.EventKey {
 // the place where the different pages wil be).
 func (s *Screen) CreateMainPane() (*tv.Flex, *tv.Pages, *CmdLine) {
 	s.CreateProjsScreen()
+	s.CreateWrkScreen()
 	pages := s.CreatePages()
 	cmdField := s.CreateCmdField()
 
@@ -100,6 +103,7 @@ func (s *Screen) CreatePages() *tv.Pages {
 func (s *Screen) GetPages() map[string]tv.Primitive {
 	return map[string]tv.Primitive{
 		"projs": s.proj,
+		"wrk":   s.wrk,
 	}
 }
 
@@ -111,6 +115,13 @@ func (s *Screen) CreateProjsScreen() *ProjPage {
 	return s.proj
 }
 
+// CreateWrkScreen creates the page for managing a workspace.
+func (s *Screen) CreateWrkScreen() *WrkPage {
+	s.wrk = NewWrkPage(s.inso).
+		SetNeutralizeFocusFunc(s.NeutralizeFocus)
+	return s.wrk
+}
+
 // NeutralizeFocus sets the focus back to the command input field.
 func (s *Screen) NeutralizeFocus() {
 	s.app.SetFocus(s.cmd)
@@ -118,7 +129,8 @@ func (s *Screen) NeutralizeFocus() {
 
 // OpenWorkspace is called to open the specified workspace by its name.
 func (s *Screen) OpenWorkspace(wrk *insomnium.Workspace) {
-	// TODO: implement
+	s.pages.SwitchToPage("wrk")
+	s.wrk.SetWrk(wrk)
 }
 
 // Run switches the page and starts the app.
@@ -154,6 +166,7 @@ func (s *Screen) GetCommands() map[string]func(args []string) {
 		"q":     s.Quit,
 		"projs": s.ProjCommand,
 		"wrk":   s.WrkCommand,
+		"req":   s.ReqCommand,
 	}
 }
 
@@ -178,6 +191,16 @@ func (s *Screen) WrkCommand(args []string) {
 	if len(args) == 0 {
 		s.pages.SwitchToPage("projs")
 		focus := s.proj.GetWrkElement()
+		s.app.SetFocus(focus)
+	}
+}
+
+// ReqCommand handles the request command, focussing in the request tree view
+// element. The command is ignored when the current page is not the wrk screen.
+func (s *Screen) ReqCommand(args []string) {
+	pageName, _ := s.pages.GetFrontPage()
+	if len(args) == 0 && pageName == "wrk" {
+		focus := s.wrk.GetReqTreeElement()
 		s.app.SetFocus(focus)
 	}
 }
