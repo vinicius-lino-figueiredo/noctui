@@ -19,6 +19,7 @@ func NewWrkTree(inso *insomnium.Insomnium) *WrkTree {
 	workspaceTree.
 		SetRoot(workspaceTree.root).
 		SetTopLevel(1).
+		SetChangedFunc(workspaceTree.treeChangedFunc).
 		SetFocusFunc(workspaceTree.focusFunc).
 		SetInputCapture(workspaceTree.inputCapture)
 	return workspaceTree
@@ -31,6 +32,8 @@ type WrkTree struct {
 	root            *tv.TreeNode
 	inso            *insomnium.Insomnium
 	NeutralizeFocus func()
+	OpenRequest     func(*insomnium.Request)
+	currentNode     *tv.TreeNode
 }
 
 // GetReqTreeElement returns the tree view element.
@@ -46,7 +49,11 @@ func (wt *WrkTree) focusFunc() {
 // inputCapture resets focus when escape key or q is pressed.
 func (wt *WrkTree) inputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
-		wt.SetCurrentNode(nil)
+		wt.TreeView.SetCurrentNode(nil)
+		wt.currentNode = nil
+		if wt.OpenRequest != nil {
+			wt.OpenRequest(nil)
+		}
 		if wt.NeutralizeFocus != nil {
 			wt.NeutralizeFocus()
 		}
@@ -55,16 +62,29 @@ func (wt *WrkTree) inputCapture(event *tc.EventKey) *tc.EventKey {
 	return event
 }
 
-// SetNeutralizeFocusFunc sets a func that is called to reset the app focus.
+// SetNeutralizeFocusFunc sets a func that is called to reset the app's focus.
 func (wt *WrkTree) SetNeutralizeFocusFunc(fn func()) *WrkTree {
 	wt.NeutralizeFocus = fn
 	return wt
+}
+
+// treeChangedFunc is called when the selected tree node changes. When the new
+// selected node is a request node, the the OpenRequest function is called.
+func (wt *WrkTree) treeChangedFunc(node *tv.TreeNode) {
+	ref := node.GetReference()
+	if req, ok := ref.(*insomnium.Request); ok {
+		wt.currentNode = node
+		if wt.OpenRequest != nil {
+			wt.OpenRequest(req)
+		}
+	}
 }
 
 // SetWrk reloads the TreeView with the provided workspace data. If the
 // workspace is nil, it clears the tree view, effectively resetting its content.
 func (wt *WrkTree) SetWrk(wrk *insomnium.Workspace) {
 	wt.root.ClearChildren()
+	wt.currentNode = nil
 	if wrk == nil {
 		return
 	}
@@ -108,14 +128,39 @@ func (wt *WrkTree) SetWrk(wrk *insomnium.Workspace) {
 // object.
 func (wt *WrkTree) NewGroupTreeNode(wrk *insomnium.RequestGroup) *tv.TreeNode {
 	node := tv.NewTreeNode(wrk.Name).
-		SetReference(wrk)
+		SetReference(wrk).
+		SetSelectedFunc(wt.ReqGroupNodeSelectedFunc)
 	return node
 }
 
 // NewRequestTreeNode creates a new tree node representing a Request. The node
 // displays the request's name and is associated with the given Request object.
 func (wt *WrkTree) NewRequestTreeNode(req *insomnium.Request) *tv.TreeNode {
-	node := tv.NewTreeNode(req.Name).
-		SetReference(req)
-	return node
+	requestNode := tv.NewTreeNode(req.Name)
+	requestNode.
+		SetReference(req).
+		SetSelectedFunc(wt.ReqNodeSelectedFunc)
+	return requestNode
+}
+
+// ReqGroupNodeSelectedFunc is called when a request group tree node is
+// selected. It changes the open/close state of the node.
+func (wt *WrkTree) ReqGroupNodeSelectedFunc() {
+	currNode := wt.TreeView.GetCurrentNode()
+	currNode.SetExpanded(!currNode.IsExpanded())
+}
+
+// ReqNodeSelectedFunc is called when a request tree node is selected. It then
+// sets focus back to the original position.
+func (wt *WrkTree) ReqNodeSelectedFunc() {
+	if wt.NeutralizeFocus != nil {
+		wt.NeutralizeFocus()
+	}
+}
+
+// SetOpenRequestFunc sets the function thaw is called when the current focused
+// node changes.
+func (wt *WrkTree) SetOpenRequestFunc(fn func(*insomnium.Request)) *WrkTree {
+	wt.OpenRequest = fn
+	return wt
 }
