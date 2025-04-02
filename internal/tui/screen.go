@@ -13,17 +13,17 @@ const EscapeRune = '\\'
 
 // Define styles and colors used in the TUI interface.
 var (
-	// FontColor is the default font color for the TUI.
-	FontColor = tc.ColorWhite
+	// fgColor is the default font color for the TUI.
+	fgColor = tc.ColorWhite
 
 	// bgColor is the default background color for the TUI.
 	bgColor = tc.ColorBlack
 
 	// CmdFieldStyle is the style used for the command input field.
-	CmdFieldStyle = tc.StyleDefault.Foreground(FontColor).Background(bgColor)
+	CmdFieldStyle = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
 
 	// BtnStyle is the style used for buttons.
-	BtnStyle = tc.StyleDefault.Foreground(FontColor).Background(bgColor)
+	BtnStyle = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
 
 	// ActiveBtnStyle is the style used for active buttons.
 	ActiveBtnStyle = BtnStyle
@@ -162,7 +162,9 @@ func (s *Screen) GetPages() map[string]tv.Primitive {
 func (s *Screen) CreateProjsScreen() *ProjPage {
 	s.proj = NewProjPage(s.app, s.inso).
 		SetWrkFunc(s.OpenWorkspace).
-		SetNeutralizeFocusFunc(s.NeutralizeFocus)
+		SetNeutralizeFocusFunc(s.NeutralizeFocus).
+		SetBackgroundColor(bgColor).
+		SetForegroundColor(fgColor)
 	return s.proj
 }
 
@@ -207,7 +209,9 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 		SetMethods(methods).
 		SetMethodStyles(unselectedMehodStyle, selectedMehodStyle).
 		SetMethodStyleFunc(s.GetDropDownMethodStyle).
-		SetTagFunc(s.TextToTag)
+		SetTagFunc(s.TextToTag).
+		SetBackgroundColor(bgColor).
+		SetForegroundColor(fgColor)
 	return s.wrk
 }
 

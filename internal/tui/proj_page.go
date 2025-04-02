@@ -44,6 +44,8 @@ type ProjPage struct {
 	*tv.Flex
 	openWorkspace   func(wrk *insomnium.Workspace)
 	app             *tv.Application
+	bg              tc.Color
+	fg              tc.Color
 	ProjMatrix      *Matrix
 	WrkMatrix       *Matrix
 	NeutralizeFocus func()
@@ -79,10 +81,26 @@ func (pp *ProjPage) PopulateProjects() {
 func (pp *ProjPage) CreateProjBtn(proj insomnium.Project) *tv.Button {
 	btn := tv.NewButton(proj.Name)
 	btn.SetStyle(BtnStyle).
+		SetLabelColor(pp.bg).
 		SetActivatedStyle(ActiveBtnStyle).
 		SetSelectedFunc(pp.SelectProjBtn(proj.ID)).
 		SetBorder(true).
-		SetFocusFunc(pp.FocusProjBtn(proj.ID))
+		SetFocusFunc(pp.FocusProjBtn(proj.ID)).
+		SetBackgroundColor(pp.bg)
+
+	return btn
+}
+
+// CreateProjBtn generates a button that selects the given workspace.
+func (pp *ProjPage) CreateWrkBtn(wrk insomnium.Workspace) *tv.Button {
+	btn := tv.NewButton(wrk.Name)
+	btn.SetStyle(BtnStyle).
+		SetLabelColor(pp.fg).
+		SetActivatedStyle(ActiveBtnStyle).
+		SetSelectedFunc(pp.WrkBtnSelFunc(&wrk)).
+		SetBorder(true).
+		SetBackgroundColor(pp.bg).
+		SetBorderColor(pp.fg)
 	return btn
 }
 
@@ -156,11 +174,7 @@ func (pp *ProjPage) PopulateWorkspaces(id string) {
 		if id != "" && id != wrk.ParentID {
 			continue
 		}
-		btn := tv.NewButton(wrk.Name)
-		btn.SetStyle(BtnStyle).
-			SetActivatedStyle(ActiveBtnStyle).
-			SetSelectedFunc(pp.WrkBtnSelFunc(&wrk)).
-			SetBorder(true)
+		btn := pp.CreateWrkBtn(wrk)
 		pp.WrkMatrix.itms = append(pp.WrkMatrix.itms, btn)
 	}
 	pp.WrkMatrix.Refresh()
@@ -213,5 +227,39 @@ func (pp *ProjPage) SetWrkFunc(fn func(wrk *insomnium.Workspace)) *ProjPage {
 // the focus on the ProjPage.
 func (pp *ProjPage) SetNeutralizeFocusFunc(fn func()) *ProjPage {
 	pp.NeutralizeFocus = fn
+	return pp
+}
+
+// SetBackgroundColor sets the page's background color.
+func (pp *ProjPage) SetBackgroundColor(bg tc.Color) *ProjPage {
+	pp.bg = bg
+	for _, p := range pp.WrkMatrix.GetAll() {
+		b := p.(*tv.Button)
+		b.SetBackgroundColor(bg)
+	}
+	for _, p := range pp.ProjMatrix.GetAll() {
+		b := p.(*tv.Button)
+		b.SetBackgroundColor(bg)
+	}
+	pp.WrkMatrix.SetBackgroundColor(bg)
+	pp.ProjMatrix.SetBackgroundColor(bg)
+	return pp
+}
+
+// SetBackgroundColor sets the page's foreground color.
+func (pp *ProjPage) SetForegroundColor(fg tc.Color) *ProjPage {
+	pp.fg = fg
+	for _, p := range pp.WrkMatrix.GetAll() {
+		b := p.(*tv.Button)
+		b.SetBorderColor(fg)
+		b.SetLabelColor(fg)
+	}
+	for _, p := range pp.ProjMatrix.GetAll() {
+		b := p.(*tv.Button)
+		b.SetBorderColor(fg)
+		b.SetLabelColor(fg)
+	}
+	pp.WrkMatrix.SetForegroundColor(fg)
+	pp.ProjMatrix.SetForegroundColor(fg)
 	return pp
 }

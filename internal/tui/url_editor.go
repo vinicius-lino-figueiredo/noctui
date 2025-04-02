@@ -34,6 +34,8 @@ type UrlEditor struct {
 	inputFieldStyle        tc.Style
 	EnvironmentVarStyle    tc.Style
 	TemplateVarStyle       tc.Style
+	bg                     tc.Color
+	fg                     tc.Color
 	tagFunc                func(string, tc.Style, tc.Style) string
 	getDropDownMethodStyle func(string) tc.Style
 	focus                  func(tv.Primitive)
@@ -218,6 +220,13 @@ func (ue *UrlEditor) SetEnvironmentVarStyle(style tc.Style) *UrlEditor {
 // SetTemplateVarStyle sets the style used to highlight an template variable.
 func (ue *UrlEditor) SetTemplateVarStyle(style tc.Style) *UrlEditor {
 	ue.TemplateVarStyle = style
+	return ue
+}
+
+// SetForegroundColor sets the foreground color for the url editor.
+func (ue *UrlEditor) SetForegroundColor(fg tc.Color) *UrlEditor {
+	ue.fg = fg
+	ue.Flex.SetBorderColor(fg)
 	return ue
 }
 

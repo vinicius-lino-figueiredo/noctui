@@ -29,11 +29,15 @@ func NewWrkTree(inso *insomnium.Insomnium) *WrkTree {
 // RequestGroups and Requests within a workspace.
 type WrkTree struct {
 	*tv.TreeView
-	root            *tv.TreeNode
-	inso            *insomnium.Insomnium
-	NeutralizeFocus func()
-	OpenRequest     func(*insomnium.Request)
-	currentNode     *tv.TreeNode
+	root              *tv.TreeNode
+	inso              *insomnium.Insomnium
+	bg                tc.Color
+	fg                tc.Color
+	textStyle         tc.Style
+	selectedTextStyle tc.Style
+	NeutralizeFocus   func()
+	OpenRequest       func(*insomnium.Request)
+	currentNode       *tv.TreeNode
 }
 
 // GetReqTreeElement returns the tree view element.
@@ -120,7 +124,49 @@ func (wt *WrkTree) SetWrk(wrk *insomnium.Workspace) {
 		node := wt.NewRequestTreeNode(&req)
 		parent.AddChild(node)
 	}
+}
 
+// SetBackgroundColor sets the background color for the tree view.
+func (wt *WrkTree) SetBackgroundColor(bg tc.Color) *WrkTree {
+	wt.bg = bg
+	wt.textStyle = tc.StyleDefault.Background(bg).Foreground(wt.fg)
+	wt.selectedTextStyle = tc.StyleDefault.Background(wt.fg).Foreground(bg)
+	wt.TreeView.SetBackgroundColor(bg)
+	return wt
+}
+
+// SetForegroundColor sets the foreground color for the tree view.
+func (wt *WrkTree) SetForegroundColor(fg tc.Color) *WrkTree {
+	wt.fg = fg
+	wt.SetGraphicsColor(fg)
+	wt.textStyle = tc.StyleDefault.Background(wt.bg).Foreground(fg)
+	wt.selectedTextStyle = tc.StyleDefault.Background(fg).Foreground(wt.bg)
+	wt.UpdateNodesStyle()
+	return wt
+}
+
+// SetSelectedTextStyle sets the text style for selected nodes.
+func (wt *WrkTree) SetSelectedTextStyle(style tc.Style) *WrkTree {
+	wt.selectedTextStyle = style
+	wt.UpdateNodesStyle()
+	return wt
+}
+
+// UpdateNodesStyle updates the style of all nodes in the tree.
+func (wt *WrkTree) UpdateNodesStyle() *WrkTree {
+	lookup := []*tv.TreeNode{wt.GetRoot()}
+	newLookup := []*tv.TreeNode{}
+	for len(lookup) > 0 {
+		newLookup = newLookup[:0]
+		for _, node := range lookup {
+			newLookup = append(newLookup, node.GetChildren()...)
+			node.SetTextStyle(wt.textStyle).
+				SetSelectedTextStyle(wt.selectedTextStyle)
+		}
+		lookup = make([]*tv.TreeNode, len(newLookup))
+		copy(lookup, newLookup)
+	}
+	return wt
 }
 
 // NewGroupTreeNode creates a new tree node representing a RequestGroup. The
@@ -129,7 +175,9 @@ func (wt *WrkTree) SetWrk(wrk *insomnium.Workspace) {
 func (wt *WrkTree) NewGroupTreeNode(wrk *insomnium.RequestGroup) *tv.TreeNode {
 	node := tv.NewTreeNode(wrk.Name).
 		SetReference(wrk).
-		SetSelectedFunc(wt.ReqGroupNodeSelectedFunc)
+		SetSelectedFunc(wt.ReqGroupNodeSelectedFunc).
+		SetTextStyle(wt.textStyle).
+		SetSelectedTextStyle(wt.selectedTextStyle)
 	return node
 }
 
@@ -139,7 +187,9 @@ func (wt *WrkTree) NewRequestTreeNode(req *insomnium.Request) *tv.TreeNode {
 	requestNode := tv.NewTreeNode(req.Name)
 	requestNode.
 		SetReference(req).
-		SetSelectedFunc(wt.ReqNodeSelectedFunc)
+		SetSelectedFunc(wt.ReqNodeSelectedFunc).
+		SetTextStyle(wt.textStyle).
+		SetSelectedTextStyle(wt.selectedTextStyle)
 	return requestNode
 }
 

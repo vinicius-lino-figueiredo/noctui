@@ -20,13 +20,16 @@ func NewReqEditor() *ReqEditor {
 type ReqEditor struct {
 	*tv.Flex
 	UrlEditor *UrlEditor
+	bg        tc.Color
+	fg        tc.Color
 }
 
 // CreateContent initializes the layout and adds child elements. It creates the
 // UrlEditor if it is nil.
 func (re *ReqEditor) CreateContent() {
 	re.Flex.Clear()
-	re.Flex.SetDirection(tv.FlexRow)
+	re.Flex.SetDirection(tv.FlexRow).
+		SetBackgroundColor(re.bg)
 
 	if re.UrlEditor == nil {
 		re.CreateUrlEditor()
@@ -90,6 +93,23 @@ func (re *ReqEditor) SetUrlInputFieldStyle(style tc.Style) *ReqEditor {
 // SetMethodStyleFunc sets a function that returns a style for an HTTP method.
 func (re *ReqEditor) SetMethodStyleFunc(fn func(string) tc.Style) *ReqEditor {
 	re.UrlEditor.SetMethodStyleFunc(fn)
+	return re
+}
+
+// SetBackgroundColor sets the background color for the editor.
+func (re *ReqEditor) SetBackgroundColor(bg tc.Color) *ReqEditor {
+	re.bg = bg
+	re.Flex.SetBackgroundColor(bg)
+	re.UrlEditor.SetBackgroundColor(bg)
+	return re
+}
+
+// SetForegroundColor sets the foreground color for the editor.
+func (re *ReqEditor) SetForegroundColor(fg tc.Color) *ReqEditor {
+	re.bg = fg
+	re.Flex.SetBorderColor(fg)
+	re.Flex.SetTitleColor(fg)
+	re.UrlEditor.SetForegroundColor(fg)
 	return re
 }
 

@@ -1,6 +1,7 @@
 package tui
 
 import (
+	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 )
 
@@ -27,6 +28,7 @@ func NewMatrix() *Matrix {
 		Grid:       grid,
 		ButtonUp:   buttonUp,
 		ButtonDown: buttonDown,
+		boxes:      []*tv.Box{},
 	}
 }
 
@@ -42,6 +44,9 @@ type Matrix struct {
 	Grid         *tv.Grid
 	ButtonUp     *tv.Button
 	ButtonDown   *tv.Button
+	bg           tc.Color
+	fg           tc.Color
+	boxes        []*tv.Box
 	currX, currY int
 	skip         int
 	w, h         int
@@ -63,12 +68,16 @@ func (m *Matrix) SetHeight(h int) *Matrix {
 // Regresh reloads and reorders the grid elements.
 func (m *Matrix) Refresh() {
 	m.Grid.Clear()
+	m.boxes = make([]*tv.Box, len(m.boxes))
 	for n := m.skip * m.w; n < (m.h*m.w)+m.skip*m.w; n++ {
 		var itm tv.Primitive
 		if n < len(m.itms) {
 			itm = m.itms[n]
 		} else {
-			itm = tv.NewBox()
+			b := tv.NewBox().
+				SetBackgroundColor(m.bg)
+			itm = b
+			m.boxes = append(m.boxes, b)
 		}
 		x := n % m.w
 		y := n / m.w
@@ -177,4 +186,31 @@ func (m *Matrix) GetCurrentPrimitive() tv.Primitive {
 	m.currY = min(m.currY, totalRows-1)
 	curr, _ := m.Get(m.currX, m.currY)
 	return curr
+}
+
+// GetAll returns all the items displayed in the matrix.
+func (m *Matrix) GetAll() []tv.Primitive {
+	res := make([]tv.Primitive, len(m.itms))
+	copy(res, m.itms)
+	return res
+}
+
+// SetBackgroundColor sets the background color for the matrix.
+func (m *Matrix) SetBackgroundColor(bg tc.Color) *Matrix {
+	m.bg = bg
+	for _, box := range m.boxes {
+		box.SetBackgroundColor(bg)
+	}
+	m.Flex.SetBackgroundColor(bg)
+	return m
+}
+
+// SetForegroundColor sets the foreground color for the url matrix.
+func (m *Matrix) SetForegroundColor(fg tc.Color) *Matrix {
+	m.fg = fg
+	for _, box := range m.boxes {
+		box.SetBorderColor(fg)
+	}
+	m.Flex.SetBorderColor(fg)
+	return m
 }

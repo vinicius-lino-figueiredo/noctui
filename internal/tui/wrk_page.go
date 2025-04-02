@@ -26,6 +26,8 @@ type WrkPage struct {
 	MiddlePanel     *ReqEditor
 	RightPanel      *tv.Flex
 	request         *insomnium.Request
+	bg              tc.Color
+	fg              tc.Color
 	NeutralizeFocus func()
 }
 
@@ -149,5 +151,25 @@ func (wp *WrkPage) SetMethodStyleFunc(fn func(string) tc.Style) *WrkPage {
 // SetTagFunc sets a function that formats text with styles into a tag.
 func (wp *WrkPage) SetTagFunc(fn TagFunc) *WrkPage {
 	wp.MiddlePanel.SetTagFunc(fn)
+	return wp
+}
+
+// SetBackgroundColor sets the background color for the page.
+func (wp *WrkPage) SetBackgroundColor(bg tc.Color) *WrkPage {
+	wp.bg = bg
+	wp.LeftPanel.SetBackgroundColor(bg)
+	wp.WrkTree.SetBackgroundColor(bg)
+	wp.MiddlePanel.SetBackgroundColor(bg)
+	wp.RightPanel.SetBackgroundColor(bg)
+	return wp
+}
+
+// SetForegroundColor sets the foreground color for the page.
+func (wp *WrkPage) SetForegroundColor(fg tc.Color) *WrkPage {
+	wp.fg = fg
+	wp.LeftPanel.SetBorderColor(fg)
+	wp.WrkTree.SetForegroundColor(fg)
+	wp.MiddlePanel.SetForegroundColor(fg)
+	wp.RightPanel.SetBorderColor(fg)
 	return wp
 }
