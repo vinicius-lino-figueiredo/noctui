@@ -118,6 +118,7 @@ func NewScreen(app *tv.Application, inso *insomnium.Insomnium) *Screen {
 // the application.
 func (s *Screen) appInputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyCtrlC {
+		s.NeutralizeFocus()
 		return nil
 	}
 	return event
