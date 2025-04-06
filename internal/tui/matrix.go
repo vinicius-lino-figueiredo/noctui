@@ -23,13 +23,17 @@ func NewMatrix() *Matrix {
 		AddItem(buttonUp, 0, 0, false).
 		AddItem(grid, 0, 1, false).
 		AddItem(buttonDown, 0, 0, false)
-	return &Matrix{
+	m := &Matrix{
+		h:          1,
+		w:          1,
 		Flex:       flex,
 		Grid:       grid,
 		ButtonUp:   buttonUp,
 		ButtonDown: buttonDown,
 		boxes:      []*tv.Box{},
 	}
+	m.Refresh()
+	return m
 }
 
 // Matrix represents a UI component consisting of a grid (Grid) and two
@@ -68,7 +72,7 @@ func (m *Matrix) SetHeight(h int) *Matrix {
 // Regresh reloads and reorders the grid elements.
 func (m *Matrix) Refresh() {
 	m.Grid.Clear()
-	m.boxes = make([]*tv.Box, len(m.boxes))
+	m.boxes = m.boxes[:0]
 	for n := m.skip * m.w; n < (m.h*m.w)+m.skip*m.w; n++ {
 		var itm tv.Primitive
 		if n < len(m.itms) {
