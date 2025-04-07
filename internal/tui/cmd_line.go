@@ -122,6 +122,7 @@ func (cl *CmdLine) ReadArgs(input string) (res []string) {
 	var quoteType rune
 	for _, c := range input {
 		switch {
+		case !inWord && !inQuotes && strings.ContainsRune(" \t\n", c):
 		case inWord && strings.ContainsRune(" \t\n", c):
 			inWord = false
 			buf.Reset()
