@@ -37,7 +37,6 @@ type WrkTree struct {
 	selectedTextStyle tc.Style
 	NeutralizeFocus   func()
 	OpenRequest       func(*insomnium.Request)
-	currentNode       *tv.TreeNode
 }
 
 // GetReqTreeElement returns the tree view element.
@@ -54,7 +53,6 @@ func (wt *WrkTree) focusFunc() {
 func (wt *WrkTree) inputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
 		wt.TreeView.SetCurrentNode(nil)
-		wt.currentNode = nil
 		if wt.OpenRequest != nil {
 			wt.OpenRequest(nil)
 		}
@@ -77,7 +75,6 @@ func (wt *WrkTree) SetNeutralizeFocusFunc(fn func()) *WrkTree {
 func (wt *WrkTree) treeChangedFunc(node *tv.TreeNode) {
 	ref := node.GetReference()
 	if req, ok := ref.(*insomnium.Request); ok {
-		wt.currentNode = node
 		if wt.OpenRequest != nil {
 			wt.OpenRequest(req)
 		}
@@ -88,7 +85,6 @@ func (wt *WrkTree) treeChangedFunc(node *tv.TreeNode) {
 // workspace is nil, it clears the tree view, effectively resetting its content.
 func (wt *WrkTree) SetWrk(wrk *insomnium.Workspace) {
 	wt.root.ClearChildren()
-	wt.currentNode = nil
 	if wrk == nil {
 		return
 	}
