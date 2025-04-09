@@ -81,6 +81,18 @@ var (
 
 	// tagEnd defines the ending delimiter for a tag.
 	tagEnd = "▌"
+
+	requestBodyPlaceholderStyle = CmdFieldStyle.Foreground(tc.ColorDarkGray)
+
+	requestTabSelectedColor = fgColor
+
+	requestTabUnselectedColor = tc.ColorDarkSlateGray
+
+	headerInputStyle = tc.StyleDefault.Background(fgColor).Foreground(bgColor)
+
+	requestBodyInputStyle = tc.StyleDefault.Background(bgColor).Foreground(fgColor)
+
+	reqBodyTheme = "catppuccin-macchiato"
 )
 
 // Screen represents the TUI screen, holding the main elements of the interface.
@@ -165,7 +177,8 @@ func (s *Screen) CreateProjsScreen() *ProjPage {
 		SetWrkFunc(s.OpenWorkspace).
 		SetNeutralizeFocusFunc(s.NeutralizeFocus).
 		SetBackgroundColor(bgColor).
-		SetForegroundColor(fgColor)
+		SetForegroundColor(fgColor).
+		SetMatrixInputCapture(s.MatrixInputCapture)
 	return s.proj
 }
 
@@ -199,6 +212,32 @@ func (s *Screen) GetMethodColor(method string) tc.Color {
 	}
 }
 
+// MatrixInputCapture will return an input capture function and will accept
+// vim motions to control the selected element in the grid.
+func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
+	return func(event *tc.EventKey) *tc.EventKey {
+		switch {
+		case event.Key() == tc.KeyEsc || event.Rune() == 'q':
+			s.NeutralizeFocus()
+		case event.Key() == tc.KeyLeft || event.Rune() == 'h':
+			m.Left()
+		case event.Key() == tc.KeyRight || event.Rune() == 'l':
+			m.Right()
+		case event.Key() == tc.KeyUp || event.Rune() == 'k':
+			m.Up()
+		case event.Key() == tc.KeyDown || event.Rune() == 'j':
+			m.Down()
+		default:
+			return event
+		}
+		p := m.GetCurrentPrimitive()
+		if p != nil {
+			s.app.SetFocus(p)
+		}
+		return nil
+	}
+}
+
 // CreateWrkScreen creates the page for managing a workspace.
 func (s *Screen) CreateWrkScreen() *WrkPage {
 	s.wrk = NewWrkPage(s.inso).
@@ -212,7 +251,13 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 		SetMethodStyleFunc(s.GetDropDownMethodStyle).
 		SetTagFunc(s.TextToTag).
 		SetBackgroundColor(bgColor).
-		SetForegroundColor(fgColor)
+		SetForegroundColor(fgColor).
+		SetSelectedReqTabColor(requestTabSelectedColor).
+		SetUnselectedReqTabColor(requestTabUnselectedColor).
+		SetHeaderInputStyle(headerInputStyle).
+		SetStyleTextFunc(s.StyleText).
+		SetRequestBodyInputStyle(requestBodyInputStyle).
+		SetRequestBodyTheme(reqBodyTheme)
 	return s.wrk
 }
 
@@ -290,12 +335,14 @@ func (s *Screen) Execute(cmd string, args []string) {
 // GetCommands returns all the existing commands.
 func (s *Screen) GetCommands() map[string]func(args []string) {
 	return map[string]func(args []string){
-		"q":      s.Quit,
-		"projs":  s.ProjCommand,
-		"wrk":    s.WrkCommand,
-		"req":    s.ReqCommand,
-		"url":    s.UrlCommand,
-		"method": s.MethodCommand,
+		"q":       s.Quit,
+		"projs":   s.ProjCommand,
+		"wrk":     s.WrkCommand,
+		"req":     s.ReqCommand,
+		"url":     s.UrlCommand,
+		"method":  s.MethodCommand,
+		"body":    s.MethodBody,
+		"headers": s.MethodHeaders,
 	}
 }
 
@@ -350,6 +397,39 @@ func (s *Screen) MethodCommand(args []string) {
 	pageName, _ := s.pages.GetFrontPage()
 	if len(args) == 0 && pageName == "wrk" && s.wrk.GetRequest() != nil {
 		focus := s.wrk.GetMethodElement()
+		s.app.SetFocus(focus)
+	}
+}
+
+// MethodCommand handles the rmethod command, focussing in the url input field
+// element. The command is ignored when the current page is not the wrk screen.
+func (s *Screen) MethodBody(args []string) {
+	pageName, _ := s.pages.GetFrontPage()
+	if len(args) == 1 && pageName == "wrk" && s.wrk.GetRequest() != nil {
+		s.wrk.MiddlePanel.tabs.OpenTab("Body")
+		switch args[0] {
+		case "edit":
+			s.wrk.MiddlePanel.tabs.BodyTab.SwitchToPage("edit")
+			focus := s.wrk.MiddlePanel.tabs.BodyTab.editor
+			s.app.SetFocus(focus)
+		case "view":
+			s.wrk.MiddlePanel.tabs.BodyTab.SwitchToPage("view")
+			focus := s.wrk.MiddlePanel.tabs.BodyTab.viewer
+			s.app.SetFocus(focus)
+		default:
+			s.app.Stop()
+			fmt.Printf("%q", args[0])
+		}
+	}
+}
+
+// MethodCommand handles the rmethod command, focussing in the url input field
+// element. The command is ignored when the current page is not the wrk screen.
+func (s *Screen) MethodHeaders(args []string) {
+	pageName, _ := s.pages.GetFrontPage()
+	if len(args) == 0 && pageName == "wrk" && s.wrk.GetRequest() != nil {
+		s.wrk.MiddlePanel.tabs.OpenTab("Headers")
+		focus := s.wrk.MiddlePanel.tabs.HeadersTab
 		s.app.SetFocus(focus)
 	}
 }

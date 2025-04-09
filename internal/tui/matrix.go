@@ -57,6 +57,15 @@ type Matrix struct {
 	itms         []tv.Primitive
 }
 
+// Focus implements the tv.Primitive interface by delegating focus to the first
+// item in the matrix, if available. This allows the Matrix to be used in tview
+// layouts that manage focus between components.
+func (m *Matrix) Focus(delegate func(tv.Primitive)) {
+	if len(m.itms) > 0 {
+		delegate(m.itms[0])
+	}
+}
+
 // SetWidth sets the number of columns in the matrix grid.
 func (m *Matrix) SetWidth(w int) *Matrix {
 	m.w = w

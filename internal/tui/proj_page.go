@@ -42,14 +42,15 @@ func NewProjPage(app *tv.Application, inso *insomnium.Insomnium) *ProjPage {
 // and managing the selection of a project and workspace.
 type ProjPage struct {
 	*tv.Flex
-	openWorkspace   func(wrk *insomnium.Workspace)
-	app             *tv.Application
-	bg              tc.Color
-	fg              tc.Color
-	ProjMatrix      *Matrix
-	WrkMatrix       *Matrix
-	NeutralizeFocus func()
-	inso            *insomnium.Insomnium
+	openWorkspace      func(wrk *insomnium.Workspace)
+	app                *tv.Application
+	bg                 tc.Color
+	fg                 tc.Color
+	ProjMatrix         *Matrix
+	WrkMatrix          *Matrix
+	NeutralizeFocus    func()
+	MatrixInputCapture func(*Matrix) InputFn
+	inso               *insomnium.Insomnium
 }
 
 // GetProjElement returns the project matrix.
@@ -180,30 +181,6 @@ func (pp *ProjPage) PopulateWorkspaces(id string) {
 	pp.WrkMatrix.Refresh()
 }
 
-// MatrixInputCapture will return an input capture function and will accept
-// vim motions to control the selected element in the grid.
-func (pp *ProjPage) MatrixInputCapture(m *Matrix) InputFn {
-	return func(event *tc.EventKey) *tc.EventKey {
-		switch {
-		case event.Key() == tc.KeyLeft || event.Rune() == 'h':
-			m.Left()
-		case event.Key() == tc.KeyRight || event.Rune() == 'l':
-			m.Right()
-		case event.Key() == tc.KeyUp || event.Rune() == 'k':
-			m.Up()
-		case event.Key() == tc.KeyDown || event.Rune() == 'j':
-			m.Down()
-		default:
-			return event
-		}
-		p := m.GetCurrentPrimitive()
-		if p != nil {
-			pp.app.SetFocus(p)
-		}
-		return nil
-	}
-}
-
 // WrkBtnSelFunc is called when a workspace is selected.
 func (pp *ProjPage) WrkBtnSelFunc(wrk *insomnium.Workspace) func() {
 	return func() {
@@ -261,5 +238,12 @@ func (pp *ProjPage) SetForegroundColor(fg tc.Color) *ProjPage {
 	}
 	pp.WrkMatrix.SetForegroundColor(fg)
 	pp.ProjMatrix.SetForegroundColor(fg)
+	return pp
+}
+
+// SetMatrixInputCapture sets a function that creates input capture function for
+// the given matrix.
+func (pp *ProjPage) SetMatrixInputCapture(fn func(*Matrix) InputFn) *ProjPage {
+	pp.MatrixInputCapture = fn
 	return pp
 }

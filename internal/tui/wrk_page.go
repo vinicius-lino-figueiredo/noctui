@@ -20,15 +20,16 @@ func NewWrkPage(inso *insomnium.Insomnium) *WrkPage {
 // three panels (LeftPanel, MiddlePanel, RightPanel) within a Flex container.
 type WrkPage struct {
 	*tv.Flex
-	inso            *insomnium.Insomnium
-	WrkTree         *WrkTree
-	LeftPanel       *tv.Flex
-	MiddlePanel     *ReqEditor
-	RightPanel      *tv.Flex
-	request         *insomnium.Request
-	bg              tc.Color
-	fg              tc.Color
-	NeutralizeFocus func()
+	inso               *insomnium.Insomnium
+	WrkTree            *WrkTree
+	LeftPanel          *tv.Flex
+	MiddlePanel        *ReqEditor
+	RightPanel         *tv.Flex
+	request            *insomnium.Request
+	bg                 tc.Color
+	fg                 tc.Color
+	NeutralizeFocus    func()
+	MatrixInputCapture func(*Matrix) InputFn
 }
 
 // GetReqTreeElement returns the tree view element.
@@ -171,5 +172,45 @@ func (wp *WrkPage) SetForegroundColor(fg tc.Color) *WrkPage {
 	wp.WrkTree.SetForegroundColor(fg)
 	wp.MiddlePanel.SetForegroundColor(fg)
 	wp.RightPanel.SetBorderColor(fg)
+	return wp
+}
+
+// SetSelectedReqTabColor sets the color of the selected tab in the request
+// editor tabs.
+func (wp *WrkPage) SetSelectedReqTabColor(c tc.Color) *WrkPage {
+	wp.MiddlePanel.SetSelectedReqTabColor(c)
+	return wp
+}
+
+// SetUnselectedReqTabColor sets the color of the unselected tabs in the request
+// editor tabs.
+func (wp *WrkPage) SetUnselectedReqTabColor(c tc.Color) *WrkPage {
+	wp.MiddlePanel.SetUnselectedReqTabColor(c)
+	return wp
+}
+
+// SetHeaderInputStyle sets the style for the input fields.
+func (wp *WrkPage) SetHeaderInputStyle(style tc.Style) *WrkPage {
+	wp.MiddlePanel.SetHeaderInputStyle(style)
+	return wp
+}
+
+// SetStyleTextFunc sets a function that is called to style a text with font
+// and background colors.
+func (wp *WrkPage) SetStyleTextFunc(fn func(string, tc.Style) string) *WrkPage {
+	wp.MiddlePanel.SetStyleTextFunc(fn)
+	return wp
+}
+
+// SetRequestBodyInputStyle sets the style of the request body editor text area.
+func (wp *WrkPage) SetRequestBodyInputStyle(style tc.Style) *WrkPage {
+	wp.MiddlePanel.SetRequestBodyInputStyle(style)
+	return wp
+}
+
+// SetRequestBodyTheme sets the highlighting theme of the request body editor
+// text area.
+func (wp *WrkPage) SetRequestBodyTheme(theme string) *WrkPage {
+	wp.MiddlePanel.SetRequestBodyTheme(theme)
 	return wp
 }

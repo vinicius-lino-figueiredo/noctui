@@ -19,9 +19,11 @@ func NewReqEditor() *ReqEditor {
 // URL editor element.
 type ReqEditor struct {
 	*tv.Flex
-	UrlEditor *UrlEditor
-	bg        tc.Color
-	fg        tc.Color
+	UrlEditor          *UrlEditor
+	tabs               *ReqTabs
+	bg                 tc.Color
+	fg                 tc.Color
+	MatrixInputCapture func(*Matrix) InputFn
 }
 
 // CreateContent initializes the layout and adds child elements. It creates the
@@ -34,14 +36,23 @@ func (re *ReqEditor) CreateContent() {
 	if re.UrlEditor == nil {
 		re.CreateUrlEditor()
 	}
+	if re.tabs == nil {
+		re.CreateTabs()
+	}
 
-	re.Flex.AddItem(re.UrlEditor, 3, 0, false)
+	re.Flex.AddItem(re.UrlEditor, 3, 0, false).
+		AddItem(re.tabs, 0, 1, false)
 }
 
 // CreateUrlEditor initializes the URL editor and sets its border.
 func (re *ReqEditor) CreateUrlEditor() {
 	re.UrlEditor = NewUrlEditor()
 	re.UrlEditor.SetBorder(true)
+}
+
+// CreateTabs loads the tabs widget.
+func (re *ReqEditor) CreateTabs() {
+	re.tabs = NewReqTabs()
 }
 
 // GetUrlElement returns the tview.Primitive used for URL editing.
@@ -58,6 +69,7 @@ func (re *ReqEditor) GetMethodElement() tv.Primitive {
 func (re *ReqEditor) SetRequest(req *insomnium.Request) *ReqEditor {
 	re.SetReqTitle(req)
 	re.UrlEditor.SetRequest(req)
+	re.tabs.SetRequest(req)
 	return re
 }
 
@@ -101,6 +113,7 @@ func (re *ReqEditor) SetBackgroundColor(bg tc.Color) *ReqEditor {
 	re.bg = bg
 	re.Flex.SetBackgroundColor(bg)
 	re.UrlEditor.SetBackgroundColor(bg)
+	re.tabs.SetBackgroundColor(bg)
 	return re
 }
 
@@ -110,6 +123,21 @@ func (re *ReqEditor) SetForegroundColor(fg tc.Color) *ReqEditor {
 	re.Flex.SetBorderColor(fg)
 	re.Flex.SetTitleColor(fg)
 	re.UrlEditor.SetForegroundColor(fg)
+	re.tabs.SetForegroundColor(fg)
+	return re
+}
+
+// SetSelectedReqTabColor sets the color of the selected tab in the request
+// editor tabs.
+func (re *ReqEditor) SetSelectedReqTabColor(c tc.Color) *ReqEditor {
+	re.tabs.SetSelectedTabColor(c)
+	return re
+}
+
+// SetUnselectedReqTabColor sets the color of the unselected tabs in the request
+// editor tabs.
+func (re *ReqEditor) SetUnselectedReqTabColor(c tc.Color) *ReqEditor {
+	re.tabs.SetUnselectedTabColor(c)
 	return re
 }
 
@@ -122,6 +150,7 @@ func (re *ReqEditor) SetFocusFunc(fn func(tv.Primitive)) *ReqEditor {
 // SetNeutralizeFocusFunc sets the function to reset the app's focus.
 func (re *ReqEditor) SetNeutralizeFocusFunc(fn func()) *ReqEditor {
 	re.UrlEditor.SetNeutralizeFocusFunc(fn)
+	re.tabs.SetNeutralizeFocusFunc(fn)
 	return re
 }
 
@@ -140,6 +169,30 @@ func (re *ReqEditor) SetMethodStyles(unselected, selected tc.Style) *ReqEditor {
 // SetTagFunc sets a function that formats text with styles into a tag.
 func (re *ReqEditor) SetTagFunc(fn TagFunc) *ReqEditor {
 	re.UrlEditor.SetTagFunc(fn)
+	return re
+}
+
+// SetHeaderInputStyle sets the header input field style.
+func (re *ReqEditor) SetHeaderInputStyle(style tc.Style) *ReqEditor {
+	re.tabs.SetHeaderInputStyle(style)
+	return re
+}
+
+// SetStyleTextFunc sets the function that styles a given text.
+func (re *ReqEditor) SetStyleTextFunc(fn func(string, tc.Style) string) *ReqEditor {
+	re.tabs.SetStyleTextFunc(fn)
+	return re
+}
+
+// SetRequestBodyInputStyle sets the request body input style.
+func (re *ReqEditor) SetRequestBodyInputStyle(style tc.Style) *ReqEditor {
+	re.tabs.SetRequestBodyInputStyle(style)
+	return re
+}
+
+// SetRequestBodyTheme sets the request body highlight theme.
+func (re *ReqEditor) SetRequestBodyTheme(theme string) *ReqEditor {
+	re.tabs.SetRequestBodyTheme(theme)
 	return re
 }
 
