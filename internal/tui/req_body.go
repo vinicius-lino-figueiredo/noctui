@@ -21,14 +21,14 @@ func NewReqBody() *ReqBody {
 // between edit/view modes.
 type ReqBody struct {
 	*tview.Pages
-	editor          *tview.TextArea
-	viewer          *MaskedTextView
-	request         *insomnium.Request
-	styleText       func(string, tc.Style) string
-	NeutralizeFocus func()
-	bg              tc.Color
-	theme           string
-	lexer           chroma.Lexer
+	editor     *tview.TextArea
+	viewer     *MaskedTextView
+	request    *insomnium.Request
+	styleText  func(string, tc.Style) string
+	ResetFocus func()
+	bg         tc.Color
+	theme      string
+	lexer      chroma.Lexer
 }
 
 // Load initializes the ReqBody layout and components if not already set. It
@@ -63,11 +63,11 @@ func (rb *ReqBody) LoadViewer() {
 }
 
 // viewerCapture handles key events in the viewer. Pressing Escape or 'q' calls
-// the NeutralizeFocus callback.
+// the ResetFocus callback.
 func (rb *ReqBody) viewerCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
-		if rb.NeutralizeFocus != nil {
-			rb.NeutralizeFocus()
+		if rb.ResetFocus != nil {
+			rb.ResetFocus()
 			return nil
 		}
 	}
@@ -181,8 +181,8 @@ func (rb *ReqBody) SetRequest(req *insomnium.Request) *ReqBody {
 	return rb
 }
 
-// SetNeutralizeFocus sets the callback used to release focus.
-func (rb *ReqBody) SetNeutralizeFocus(fn func()) *ReqBody {
-	rb.NeutralizeFocus = fn
+// SetResetFocus sets the callback used to release focus.
+func (rb *ReqBody) SetResetFocus(fn func()) *ReqBody {
+	rb.ResetFocus = fn
 	return rb
 }

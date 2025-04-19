@@ -39,7 +39,7 @@ type URLEditor struct {
 	tagFunc                func(string, tc.Style, tc.Style) string
 	getDropDownMethodStyle func(string) tc.Style
 	focus                  func(tv.Primitive)
-	NeutralizeFocus        func()
+	ResetFocus             func()
 }
 
 // CreateElements loads instances for the tview elements.
@@ -119,8 +119,8 @@ func (ue *URLEditor) inputChanged(text string) {
 // inputDone is called when the user finishes writing in the URL
 // *tview.InputField widget and releases the app's focus.
 func (ue *URLEditor) inputDone(_ tc.Key) {
-	if ue.NeutralizeFocus != nil {
-		ue.NeutralizeFocus()
+	if ue.ResetFocus != nil {
+		ue.ResetFocus()
 	}
 }
 
@@ -153,7 +153,7 @@ func (ue *URLEditor) methodCapture(event *tc.EventKey) *tc.EventKey {
 	case r == 'k':
 		return tc.NewEventKey(tc.KeyUp, 0, event.Modifiers())
 	case r == 'q' || event.Key() == tc.KeyEsc:
-		ue.NeutralizeFocus()
+		ue.ResetFocus()
 		return nil
 	default:
 		return nil
@@ -266,10 +266,10 @@ func (ue *URLEditor) SetFocusFunc(fn func(tv.Primitive)) *URLEditor {
 	return ue
 }
 
-// SetNeutralizeFocusFunc sets the function that is called to reset the app
+// SetResetFocusFunc sets the function that is called to reset the app
 // focus.
-func (ue *URLEditor) SetNeutralizeFocusFunc(fn func()) *URLEditor {
-	ue.NeutralizeFocus = fn
+func (ue *URLEditor) SetResetFocusFunc(fn func()) *URLEditor {
+	ue.ResetFocus = fn
 	return ue
 }
 
@@ -297,8 +297,8 @@ func (ue *URLEditor) SetTagFunc(fn TagFunc) *URLEditor {
 // it updates the method field style and resets the app's focus.
 func (ue *URLEditor) methodSelected(method string, _ int) {
 	ue.updateMethodStyle(method)
-	if ue.NeutralizeFocus != nil {
-		ue.NeutralizeFocus()
+	if ue.ResetFocus != nil {
+		ue.ResetFocus()
 	}
 }
 

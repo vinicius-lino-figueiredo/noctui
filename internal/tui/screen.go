@@ -143,7 +143,7 @@ func NewScreen(app *tv.Application, inso *insomnium.Insomnium) *Screen {
 // the application.
 func (s *Screen) appInputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyCtrlC {
-		s.NeutralizeFocus()
+		s.ResetFocus()
 		return nil
 	}
 	return event
@@ -188,7 +188,7 @@ func (s *Screen) GetPages() map[string]tv.Primitive {
 func (s *Screen) CreateProjsScreen() *ProjPage {
 	s.proj = NewProjPage(s.app, s.inso).
 		SetWrkFunc(s.OpenWorkspace).
-		SetNeutralizeFocusFunc(s.NeutralizeFocus).
+		SetResetFocusFunc(s.ResetFocus).
 		SetBackgroundColor(bgColor).
 		SetForegroundColor(fgColor).
 		SetMatrixInputCapture(s.MatrixInputCapture)
@@ -231,7 +231,7 @@ func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
 	return func(event *tc.EventKey) *tc.EventKey {
 		switch {
 		case event.Key() == tc.KeyEsc || event.Rune() == 'q':
-			s.NeutralizeFocus()
+			s.ResetFocus()
 		case event.Key() == tc.KeyLeft || event.Rune() == 'h':
 			m.Left()
 		case event.Key() == tc.KeyRight || event.Rune() == 'l':
@@ -255,7 +255,7 @@ func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
 func (s *Screen) CreateWrkScreen() *WrkPage {
 	s.wrk = NewWrkPage(s.inso).
 		SetFocusFunc(s.Focus).
-		SetNeutralizeFocusFunc(s.NeutralizeFocus).
+		SetResetFocusFunc(s.ResetFocus).
 		SetEnvironmentVarStyle(environmentVarStyle).
 		SetTemplateVarStyle(templateVarStyle).
 		SetURLInputFieldStyle(urlInputFieldStyle).
@@ -279,8 +279,8 @@ func (s *Screen) Focus(element tv.Primitive) {
 	s.app.SetFocus(element)
 }
 
-// NeutralizeFocus sets the focus back to the command input field.
-func (s *Screen) NeutralizeFocus() {
+// ResetFocus sets the focus back to the command input field.
+func (s *Screen) ResetFocus() {
 	s.app.SetFocus(s.cmd)
 }
 

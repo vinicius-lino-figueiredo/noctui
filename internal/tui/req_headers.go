@@ -18,9 +18,9 @@ func NewReqHeaders() *ReqHeaders {
 // a Matrix to organize the header fields in a grid layout.
 type ReqHeaders struct {
 	*Matrix
-	inputStyle      tc.Style
-	focus           func(tv.Primitive)
-	NeutralizeFocus func()
+	inputStyle tc.Style
+	focus      func(tv.Primitive)
+	ResetFocus func()
 }
 
 // Load initializes the ReqHeaders layout and sets the default behavior for
@@ -66,7 +66,7 @@ func (rh *ReqHeaders) MatrixCapture(event *tc.EventKey) *tc.EventKey {
 		rh.OpenHeader(h)
 		return nil
 	case event.Key() == tc.KeyEsc || event.Rune() == 'q':
-		rh.NeutralizeFocus()
+		rh.ResetFocus()
 		return nil
 	case event.Key() == tc.KeyLeft || event.Rune() == 'h':
 		rh.Left()
@@ -97,10 +97,10 @@ func (rh *ReqHeaders) Focus(fn func(tv.Primitive)) {
 	rh.Matrix.Focus(fn)
 }
 
-// SetNeutralizeFocusFunc defines a function to be called to reset the focus
+// SetResetFocusFunc defines a function to be called to reset the focus
 // state.
-func (rh *ReqHeaders) SetNeutralizeFocusFunc(fn func()) *ReqHeaders {
-	rh.NeutralizeFocus = fn
+func (rh *ReqHeaders) SetResetFocusFunc(fn func()) *ReqHeaders {
+	rh.ResetFocus = fn
 	return rh
 }
 

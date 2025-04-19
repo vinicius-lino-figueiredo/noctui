@@ -147,10 +147,10 @@ func (re *ReqEditor) SetFocusFunc(fn func(tv.Primitive)) *ReqEditor {
 	return re
 }
 
-// SetNeutralizeFocusFunc sets the function to reset the app's focus.
-func (re *ReqEditor) SetNeutralizeFocusFunc(fn func()) *ReqEditor {
-	re.URLEditor.SetNeutralizeFocusFunc(fn)
-	re.tabs.SetNeutralizeFocusFunc(fn)
+// SetResetFocusFunc sets the function to reset the app's focus.
+func (re *ReqEditor) SetResetFocusFunc(fn func()) *ReqEditor {
+	re.URLEditor.SetResetFocusFunc(fn)
+	re.tabs.SetResetFocusFunc(fn)
 	return re
 }
 

@@ -26,7 +26,7 @@ type ReqTabs struct {
 	fg               tc.Color
 	headerInputStyle tc.Style
 	focus            func(tv.Primitive)
-	NeutralizeFocus  func()
+	ResetFocus       func()
 }
 
 // Load initializes the ReqTabs and it's content.
@@ -95,12 +95,12 @@ func (rt *ReqTabs) SetForegroundColor(fg tc.Color) *ReqTabs {
 	return rt
 }
 
-// SetNeutralizeFocusFunc sets a callback used to neutralize focus state. It
+// SetResetFocusFunc sets a callback used to neutralize focus state. It
 // applies this function to both the Body and Headers tabs.
-func (rt *ReqTabs) SetNeutralizeFocusFunc(fn func()) *ReqTabs {
-	rt.NeutralizeFocus = fn
-	rt.HeadersTab.SetNeutralizeFocusFunc(fn)
-	rt.BodyTab.SetNeutralizeFocus(fn)
+func (rt *ReqTabs) SetResetFocusFunc(fn func()) *ReqTabs {
+	rt.ResetFocus = fn
+	rt.HeadersTab.SetResetFocusFunc(fn)
+	rt.BodyTab.SetResetFocus(fn)
 	return rt
 }
 

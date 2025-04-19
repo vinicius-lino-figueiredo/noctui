@@ -35,7 +35,7 @@ type WrkTree struct {
 	fg                tc.Color
 	textStyle         tc.Style
 	selectedTextStyle tc.Style
-	NeutralizeFocus   func()
+	ResetFocus        func()
 	OpenRequest       func(*insomnium.Request)
 }
 
@@ -56,17 +56,17 @@ func (wt *WrkTree) inputCapture(event *tc.EventKey) *tc.EventKey {
 		if wt.OpenRequest != nil {
 			wt.OpenRequest(nil)
 		}
-		if wt.NeutralizeFocus != nil {
-			wt.NeutralizeFocus()
+		if wt.ResetFocus != nil {
+			wt.ResetFocus()
 		}
 		return nil
 	}
 	return event
 }
 
-// SetNeutralizeFocusFunc sets a func that is called to reset the app's focus.
-func (wt *WrkTree) SetNeutralizeFocusFunc(fn func()) *WrkTree {
-	wt.NeutralizeFocus = fn
+// SetResetFocusFunc sets a func that is called to reset the app's focus.
+func (wt *WrkTree) SetResetFocusFunc(fn func()) *WrkTree {
+	wt.ResetFocus = fn
 	return wt
 }
 
@@ -199,8 +199,8 @@ func (wt *WrkTree) ReqGroupNodeSelectedFunc() {
 // ReqNodeSelectedFunc is called when a request tree node is selected. It then
 // sets focus back to the original position.
 func (wt *WrkTree) ReqNodeSelectedFunc() {
-	if wt.NeutralizeFocus != nil {
-		wt.NeutralizeFocus()
+	if wt.ResetFocus != nil {
+		wt.ResetFocus()
 	}
 }
 

@@ -48,7 +48,7 @@ type ProjPage struct {
 	fg                 tc.Color
 	ProjMatrix         *Matrix
 	WrkMatrix          *Matrix
-	NeutralizeFocus    func()
+	ResetFocus         func()
 	MatrixInputCapture func(*Matrix) InputFn
 	inso               *insomnium.Insomnium
 }
@@ -107,12 +107,12 @@ func (pp *ProjPage) CreateWrkBtn(wrk insomnium.Workspace) *tv.Button {
 
 // SelectProjBtn is triggered when a project button is selected. It attempts to
 // set focus on the first workspace in the workspace matrix. If no workspace is
-// available, it calls the NeutralizeFocus function to shift focus away,
-// typically returning it to the command input.
+// available, it calls the ResetFocus function to shift focus away, typically
+// returning it to the command input.
 func (pp *ProjPage) SelectProjBtn() {
 	fb, ok := pp.WrkMatrix.Get(0, 0)
 	if !ok {
-		pp.NeutralizeFocus()
+		pp.ResetFocus()
 	} else {
 		pp.app.SetFocus(fb)
 	}
@@ -143,8 +143,8 @@ func (pp *ProjPage) MatrixOnFocus(m *Matrix) func() {
 func (pp *ProjPage) ProjMatrixInputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
 		pp.PopulateWorkspaces("")
-		if pp.NeutralizeFocus != nil {
-			pp.NeutralizeFocus()
+		if pp.ResetFocus != nil {
+			pp.ResetFocus()
 		}
 		return nil
 	}
@@ -158,7 +158,7 @@ func (pp *ProjPage) ProjMatrixInputCapture(event *tc.EventKey) *tc.EventKey {
 func (pp *ProjPage) WrkMatrixInputCapture(event *tc.EventKey) *tc.EventKey {
 	if event.Key() == tc.KeyEsc || event.Rune() == 'q' {
 		pp.PopulateWorkspaces("")
-		pp.NeutralizeFocus()
+		pp.ResetFocus()
 		return nil
 	}
 	fn := pp.MatrixInputCapture(pp.WrkMatrix)
@@ -183,8 +183,8 @@ func (pp *ProjPage) PopulateWorkspaces(id string) {
 // WrkBtnSelFunc is called when a workspace is selected.
 func (pp *ProjPage) WrkBtnSelFunc(wrk *insomnium.Workspace) func() {
 	return func() {
-		if pp.NeutralizeFocus != nil {
-			pp.NeutralizeFocus()
+		if pp.ResetFocus != nil {
+			pp.ResetFocus()
 		}
 		if pp.openWorkspace != nil {
 			pp.openWorkspace(wrk)
@@ -199,10 +199,10 @@ func (pp *ProjPage) SetWrkFunc(fn func(wrk *insomnium.Workspace)) *ProjPage {
 	return pp
 }
 
-// SetNeutralizeFocusFunc sets a function that will be called to neutralize
+// SetResetFocusFunc sets a function that will be called to neutralize
 // the focus on the ProjPage.
-func (pp *ProjPage) SetNeutralizeFocusFunc(fn func()) *ProjPage {
-	pp.NeutralizeFocus = fn
+func (pp *ProjPage) SetResetFocusFunc(fn func()) *ProjPage {
+	pp.ResetFocus = fn
 	return pp
 }
 

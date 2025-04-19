@@ -28,7 +28,7 @@ type WrkPage struct {
 	request            *insomnium.Request
 	bg                 tc.Color
 	fg                 tc.Color
-	NeutralizeFocus    func()
+	ResetFocus         func()
 	MatrixInputCapture func(*Matrix) InputFn
 }
 
@@ -97,11 +97,11 @@ func (wp *WrkPage) SetWrk(wrk *insomnium.Workspace) {
 	wp.WrkTree.SetWrk(wrk)
 }
 
-// SetNeutralizeFocusFunc sets the func that is called to reset the app's focus.
-func (wp *WrkPage) SetNeutralizeFocusFunc(fn func()) *WrkPage {
-	wp.NeutralizeFocus = fn
-	wp.WrkTree.SetNeutralizeFocusFunc(fn)
-	wp.MiddlePanel.SetNeutralizeFocusFunc(fn)
+// SetResetFocusFunc sets the func that is called to reset the app's focus.
+func (wp *WrkPage) SetResetFocusFunc(fn func()) *WrkPage {
+	wp.ResetFocus = fn
+	wp.WrkTree.SetResetFocusFunc(fn)
+	wp.MiddlePanel.SetResetFocusFunc(fn)
 	return wp
 }
 
