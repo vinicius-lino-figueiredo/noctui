@@ -13,7 +13,7 @@ func init() {
 	var workspace *string
 	TuiCmd := &cobra.Command{
 		Use: "tui",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			app := tv.NewApplication()
 			scr := tui.NewScreen(app, inso)
 

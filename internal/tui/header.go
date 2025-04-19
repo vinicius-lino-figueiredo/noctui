@@ -108,7 +108,6 @@ func (h *Header) CycleFocus() {
 		h.focus(h.ValueInput)
 	} else if h.ValueInput.HasFocus() {
 		h.focus(h.KeyInput)
-	} else {
 	}
 }
 

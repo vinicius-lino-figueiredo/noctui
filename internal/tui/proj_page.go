@@ -70,7 +70,7 @@ func (pp *ProjPage) PopulateProjects() {
 		projectButton := pp.CreateProjBtn(proj)
 		projectButton.SetStyle(BtnStyle).
 			SetActivatedStyle(ActiveBtnStyle).
-			SetSelectedFunc(pp.SelectProjBtn(proj.ID)).
+			SetSelectedFunc(pp.SelectProjBtn).
 			SetBorder(true).
 			SetFocusFunc(pp.FocusProjBtn(proj.ID))
 		pp.ProjMatrix.itms = append(pp.ProjMatrix.itms, projectButton)
@@ -84,7 +84,7 @@ func (pp *ProjPage) CreateProjBtn(proj insomnium.Project) *tv.Button {
 	btn.SetStyle(BtnStyle).
 		SetLabelColor(pp.bg).
 		SetActivatedStyle(ActiveBtnStyle).
-		SetSelectedFunc(pp.SelectProjBtn(proj.ID)).
+		SetSelectedFunc(pp.SelectProjBtn).
 		SetBorder(true).
 		SetFocusFunc(pp.FocusProjBtn(proj.ID)).
 		SetBackgroundColor(pp.bg)
@@ -92,7 +92,7 @@ func (pp *ProjPage) CreateProjBtn(proj insomnium.Project) *tv.Button {
 	return btn
 }
 
-// CreateProjBtn generates a button that selects the given workspace.
+// CreateWrkBtn generates a button that selects the given workspace.
 func (pp *ProjPage) CreateWrkBtn(wrk insomnium.Workspace) *tv.Button {
 	btn := tv.NewButton(wrk.Name)
 	btn.SetStyle(BtnStyle).
@@ -105,21 +105,20 @@ func (pp *ProjPage) CreateWrkBtn(wrk insomnium.Workspace) *tv.Button {
 	return btn
 }
 
-// SelectProjBtn is called when a project button is selected and it sets focus
-// on the fist workspace in the grid. If there is no workspace in that grid, it
-// sets focus to the command input field.
-func (pp *ProjPage) SelectProjBtn(id string) func() {
-	return func() {
-		fb, ok := pp.WrkMatrix.Get(0, 0)
-		if !ok {
-			pp.NeutralizeFocus()
-		} else {
-			pp.app.SetFocus(fb)
-		}
+// SelectProjBtn is triggered when a project button is selected. It attempts to
+// set focus on the first workspace in the workspace matrix. If no workspace is
+// available, it calls the NeutralizeFocus function to shift focus away,
+// typically returning it to the command input.
+func (pp *ProjPage) SelectProjBtn() {
+	fb, ok := pp.WrkMatrix.Get(0, 0)
+	if !ok {
+		pp.NeutralizeFocus()
+	} else {
+		pp.app.SetFocus(fb)
 	}
 }
 
-// FocsProjBtn returns a func that is called when the app sets focus to the
+// FocusProjBtn returns a func that is called when the app sets focus to the
 // given button. The function returned repopulates the workspaces grid with
 // workspaces whose ParentID is equal to the ID of the focused button.
 func (pp *ProjPage) FocusProjBtn(id string) func() {
@@ -223,7 +222,7 @@ func (pp *ProjPage) SetBackgroundColor(bg tc.Color) *ProjPage {
 	return pp
 }
 
-// SetBackgroundColor sets the page's foreground color.
+// SetForegroundColor sets the page's foreground color.
 func (pp *ProjPage) SetForegroundColor(fg tc.Color) *ProjPage {
 	pp.fg = fg
 	for _, p := range pp.WrkMatrix.GetAll() {

@@ -9,7 +9,13 @@ import (
 )
 
 const (
+	// CmdLineInstanceNormal indicates that the command line is in its
+	// default state, ready to accept and process user input normally.
 	CmdLineInstanceNormal = iota
+
+	// CmdLineInstanceError indicates that the command line is displaying an
+	// error message, typically used to provide feedback after an invalid
+	// command or input.
 	CmdLineInstanceError
 )
 

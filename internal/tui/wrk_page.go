@@ -37,9 +37,9 @@ func (wp *WrkPage) GetReqTreeElement() tv.Primitive {
 	return wp.WrkTree.GetReqTreeElement()
 }
 
-// GetUrlElement returns the element that is focused to edit the request url.
-func (wp *WrkPage) GetUrlElement() tv.Primitive {
-	return wp.MiddlePanel.GetUrlElement()
+// GetURLElement returns the element that is focused to edit the request url.
+func (wp *WrkPage) GetURLElement() tv.Primitive {
+	return wp.MiddlePanel.GetURLElement()
 }
 
 // GetMethodElement returns the element that receives focus when the user tries
@@ -92,7 +92,7 @@ func (wp *WrkPage) GetRequest() *insomnium.Request {
 	return wp.request
 }
 
-// SetWrkUpdates the page with a new workspace.
+// SetWrk updates the page with a new workspace.
 func (wp *WrkPage) SetWrk(wrk *insomnium.Workspace) {
 	wp.WrkTree.SetWrk(wrk)
 }
@@ -123,13 +123,13 @@ func (wp *WrkPage) SetTemplateVarStyle(style tc.Style) *WrkPage {
 	return wp
 }
 
-// SetUrlInputFieldStyle sets the url input field style.
-func (wp *WrkPage) SetUrlInputFieldStyle(style tc.Style) *WrkPage {
-	wp.MiddlePanel.SetUrlInputFieldStyle(style)
+// SetURLInputFieldStyle sets the url input field style.
+func (wp *WrkPage) SetURLInputFieldStyle(style tc.Style) *WrkPage {
+	wp.MiddlePanel.SetURLInputFieldStyle(style)
 	return wp
 }
 
-// SetMethod sets the http methods options in the method dropdown element.
+// SetMethods sets the http methods options in the method dropdown element.
 func (wp *WrkPage) SetMethods(methods []string) *WrkPage {
 	wp.MiddlePanel.SetMethods(methods)
 	return wp

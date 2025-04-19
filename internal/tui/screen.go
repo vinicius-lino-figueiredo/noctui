@@ -1,3 +1,16 @@
+// Package tui provides the terminal user interface components for the Noctui
+// application. It includes reusable primitives such as editable text views,
+// tabbed layouts, tree views, command-line input handlers, and
+// project/workspace selectors.
+//
+// The package leverages tview and tcell to build a dynamic and
+// keyboard-friendly environment for interacting with Insomnium API definitions.
+// Each component is designed to be modular, themeable, and fully integrated
+// with the application's workflow.
+//
+// This package is the core of the user experience, enabling navigation,
+// editing, and inspection of API projects and HTTP requests directly in the
+// terminal.
 package tui
 
 import (
@@ -245,7 +258,7 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 		SetNeutralizeFocusFunc(s.NeutralizeFocus).
 		SetEnvironmentVarStyle(environmentVarStyle).
 		SetTemplateVarStyle(templateVarStyle).
-		SetUrlInputFieldStyle(urlInputFieldStyle).
+		SetURLInputFieldStyle(urlInputFieldStyle).
 		SetMethods(methods).
 		SetMethodStyles(unselectedMehodStyle, selectedMehodStyle).
 		SetMethodStyleFunc(s.GetDropDownMethodStyle).
@@ -339,7 +352,7 @@ func (s *Screen) GetCommands() map[string]func(args []string) {
 		"projs":   s.ProjCommand,
 		"wrk":     s.WrkCommand,
 		"req":     s.ReqCommand,
-		"url":     s.UrlCommand,
+		"url":     s.URLCommand,
 		"method":  s.MethodCommand,
 		"body":    s.MethodBody,
 		"headers": s.MethodHeaders,
@@ -347,7 +360,7 @@ func (s *Screen) GetCommands() map[string]func(args []string) {
 }
 
 // Quit closes the app.
-func (s *Screen) Quit(args []string) {
+func (s *Screen) Quit(_ []string) {
 	s.app.Stop()
 }
 
@@ -381,12 +394,12 @@ func (s *Screen) ReqCommand(args []string) {
 	}
 }
 
-// MethodCommand handles the rmethod command, focussing in the url input field
+// URLCommand handles the rmethod command, focussing in the url input field
 // element. The command is ignored when the current page is not the wrk screen.
-func (s *Screen) UrlCommand(args []string) {
+func (s *Screen) URLCommand(args []string) {
 	pageName, _ := s.pages.GetFrontPage()
 	if len(args) == 0 && pageName == "wrk" && s.wrk.GetRequest() != nil {
-		focus := s.wrk.GetUrlElement()
+		focus := s.wrk.GetURLElement()
 		s.app.SetFocus(focus)
 	}
 }
@@ -401,8 +414,9 @@ func (s *Screen) MethodCommand(args []string) {
 	}
 }
 
-// MethodCommand handles the rmethod command, focussing in the url input field
-// element. The command is ignored when the current page is not the wrk screen.
+// MethodBody moves the focus to the request body editor element. The command is
+// ignored if the current page is not the wrk screen or if no request is
+// selected.
 func (s *Screen) MethodBody(args []string) {
 	pageName, _ := s.pages.GetFrontPage()
 	if len(args) == 1 && pageName == "wrk" && s.wrk.GetRequest() != nil {
@@ -423,8 +437,9 @@ func (s *Screen) MethodBody(args []string) {
 	}
 }
 
-// MethodCommand handles the rmethod command, focussing in the url input field
-// element. The command is ignored when the current page is not the wrk screen.
+// MethodHeaders moves the focus to the request headers editor element. The
+// command is ignored if the current page is not the wrk screen or if no request
+// is selected.
 func (s *Screen) MethodHeaders(args []string) {
 	pageName, _ := s.pages.GetFrontPage()
 	if len(args) == 0 && pageName == "wrk" && s.wrk.GetRequest() != nil {

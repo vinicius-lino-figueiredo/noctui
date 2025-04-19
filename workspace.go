@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	var quiet, noPager, asJson, asJsonList *bool
+	var quiet, noPager, asJSON, asJSONList *bool
 	var cols *[]string
 	WsCmd := &cobra.Command{
 		Use:     "workspace",
@@ -27,14 +27,14 @@ func init() {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			paginate := !(*noPager)
 			buf := bytes.NewBuffer(nil)
-			if *asJsonList {
+			if *asJSONList {
 				_ = json.NewEncoder(buf).Encode(inso.Workspaces)
 				return Output(buf, paginate)
 			}
-			if *asJson {
+			if *asJSON {
 				for _, ws := range inso.Workspaces {
 					_ = json.NewEncoder(buf).Encode(ws)
 				}
@@ -70,7 +70,7 @@ func init() {
 		Short:   "Get workspace info",
 		Long:    "Get basic json info about the given workspace",
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			paginate := !(*noPager)
 			id := args[0]
 			var wrk *insomnium.Workspace
@@ -97,8 +97,8 @@ func init() {
 
 	quiet = WsCmd.PersistentFlags().BoolP("quiet", "q", false, "Return id only")
 	noPager = WsCmd.PersistentFlags().BoolP("no-pager", "P", false, "Disable pager")
-	asJson = WsLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
-	asJsonList = WsLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
+	asJSON = WsLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
+	asJSONList = WsLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
 	cols = WsLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "Set columns")
 
 	rootCmd.AddCommand(WsCmd)

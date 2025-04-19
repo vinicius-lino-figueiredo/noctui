@@ -11,20 +11,20 @@ import (
 	"github.com/vinicius-lino-figueiredo/insomnium"
 )
 
-// NewUrlEditor creates an element used to display and edit a request URL and
+// NewURLEditor creates an element used to display and edit a request URL and
 // HTTP method.
-func NewUrlEditor() *UrlEditor {
-	ue := &UrlEditor{
+func NewURLEditor() *URLEditor {
+	ue := &URLEditor{
 		Flex: tv.NewFlex(),
 	}
 	ue.CreateElements()
 	return ue
 }
 
-// UrlEditor is a tview.Primitive that holds a URL editor (a *tview.Pages with a
+// URLEditor is a tview.Primitive that holds a URL editor (a *tview.Pages with a
 // *tview.TextView to display a colored URL and a *tview.InputField to edit the
 // URL) and an HTTP method selector (a *tview.DropDown).
-type UrlEditor struct {
+type URLEditor struct {
 	*tv.Flex
 	methods                []string
 	method                 *tv.DropDown
@@ -43,7 +43,7 @@ type UrlEditor struct {
 }
 
 // CreateElements loads instances for the tview elements.
-func (ue *UrlEditor) CreateElements() {
+func (ue *URLEditor) CreateElements() {
 	if ue.Flex == nil {
 		ue.Flex = tv.NewFlex()
 	}
@@ -61,7 +61,7 @@ func (ue *UrlEditor) CreateElements() {
 }
 
 // CreateMethod loads the method *tview.DropDown element.
-func (ue *UrlEditor) CreateMethod() {
+func (ue *URLEditor) CreateMethod() {
 	if ue.method == nil {
 		ue.method = tv.NewDropDown()
 	}
@@ -70,12 +70,12 @@ func (ue *UrlEditor) CreateMethod() {
 }
 
 // CreatePages loads the URL *tview.TextView/*tview.InputField page elements.
-func (ue *UrlEditor) CreatePages() {
+func (ue *URLEditor) CreatePages() {
 	if ue.pages == nil {
 		ue.pages = tv.NewPages()
 	}
-	ue.CreateUrlView()
-	ue.CreateUrlInput()
+	ue.CreateURLView()
+	ue.CreateURLInput()
 	for _, page := range ue.pages.GetPageNames(false) {
 		ue.pages.RemovePage(page)
 	}
@@ -83,8 +83,8 @@ func (ue *UrlEditor) CreatePages() {
 		AddPage("input", ue.urlInput, true, false)
 }
 
-// CreateUrlView loads the *MaskedTextView element.
-func (ue *UrlEditor) CreateUrlView() {
+// CreateURLView loads the *MaskedTextView element.
+func (ue *URLEditor) CreateURLView() {
 	if ue.pages == nil {
 		ue.pages = tv.NewPages()
 	}
@@ -93,8 +93,8 @@ func (ue *UrlEditor) CreateUrlView() {
 		SetDynamicColors(true)
 }
 
-// CreateUrlInput loads the *tview.InputField element.
-func (ue *UrlEditor) CreateUrlInput() {
+// CreateURLInput loads the *tview.InputField element.
+func (ue *URLEditor) CreateURLInput() {
 	if ue.urlInput == nil {
 		ue.urlInput = tv.NewInputField()
 	}
@@ -106,19 +106,19 @@ func (ue *UrlEditor) CreateUrlInput() {
 
 // inputFocus is called when the *tview.InputField receives focus and switches
 // the URL page to it, hiding the *MaskedTextView.
-func (ue *UrlEditor) inputFocus() {
+func (ue *URLEditor) inputFocus() {
 	ue.pages.SwitchToPage("input")
 }
 
 // inputChanged is called when the value of the *tview.InputField changes and
 // applies the changes in the *MaskedTextView too.
-func (ue *UrlEditor) inputChanged(text string) {
+func (ue *URLEditor) inputChanged(text string) {
 	ue.urlView.SetText(text)
 }
 
 // inputDone is called when the user finishes writing in the URL
 // *tview.InputField widget and releases the app's focus.
-func (ue *UrlEditor) inputDone(key tc.Key) {
+func (ue *URLEditor) inputDone(_ tc.Key) {
 	if ue.NeutralizeFocus != nil {
 		ue.NeutralizeFocus()
 	}
@@ -126,19 +126,19 @@ func (ue *UrlEditor) inputDone(key tc.Key) {
 
 // inputBlur is called when the *tview.InputField element loses focus and sets
 // the *MaskedTextView URL element visible.
-func (ue *UrlEditor) inputBlur() {
+func (ue *URLEditor) inputBlur() {
 	ue.pages.SwitchToPage("view")
 }
 
 // methodFocus is called when the method *tview.DropDown receives focus and
 // opens the method DropDown list.
-func (ue *UrlEditor) methodFocus() {
+func (ue *URLEditor) methodFocus() {
 	ue.openMethodDropDown()
 }
 
 // methodCapture is called on keyboard input while the method *tview.DropDown
 // widget is on focus. it uses 'j' and 'k' as motions and avoids other inputs
-func (ue *UrlEditor) methodCapture(event *tc.EventKey) *tc.EventKey {
+func (ue *URLEditor) methodCapture(event *tc.EventKey) *tc.EventKey {
 	r := event.Rune()
 	k := event.Key()
 	switch {
@@ -160,18 +160,18 @@ func (ue *UrlEditor) methodCapture(event *tc.EventKey) *tc.EventKey {
 	}
 }
 
-// GetUrlElement returns the URL text input element.
-func (ue *UrlEditor) GetUrlElement() tv.Primitive {
+// GetURLElement returns the URL text input element.
+func (ue *URLEditor) GetURLElement() tv.Primitive {
 	return ue.urlInput
 }
 
 // GetMethodElement returns the method dropdown element.
-func (ue *UrlEditor) GetMethodElement() tv.Primitive {
+func (ue *URLEditor) GetMethodElement() tv.Primitive {
 	return ue.method
 }
 
 // SetRequest sets the current selected request.
-func (ue *UrlEditor) SetRequest(req *insomnium.Request) {
+func (ue *URLEditor) SetRequest(req *insomnium.Request) {
 	if req == nil {
 		ue.urlInput.SetText("")
 		ue.SetMethod("")
@@ -181,15 +181,15 @@ func (ue *UrlEditor) SetRequest(req *insomnium.Request) {
 	ue.SetMethod(req.Method)
 }
 
-// SetUrlInputFieldStyle sets the base style for the URL input widget.
-func (ue *UrlEditor) SetUrlInputFieldStyle(style tc.Style) *UrlEditor {
+// SetURLInputFieldStyle sets the base style for the URL input widget.
+func (ue *URLEditor) SetURLInputFieldStyle(style tc.Style) *URLEditor {
 	ue.inputFieldStyle = style
 	ue.urlInput.SetFieldStyle(style)
 	return ue
 }
 
 // SetMethod sets the current method at the *tview.DropDown element.
-func (ue *UrlEditor) SetMethod(method string) {
+func (ue *URLEditor) SetMethod(method string) {
 	ue.updateMethodStyle(method)
 	// unsetting the selection func because it would unfocus the dropdown
 	ue.method.SetSelectedFunc(nil)
@@ -199,7 +199,7 @@ func (ue *UrlEditor) SetMethod(method string) {
 
 // updateMethodStyle resizes the element in the flex so the content fits in and
 // reapplies the style with the corresponding method style.
-func (ue *UrlEditor) updateMethodStyle(method string) {
+func (ue *URLEditor) updateMethodStyle(method string) {
 	ue.Flex.ResizeItem(ue.method, len(method), 0)
 	if ue.getDropDownMethodStyle != nil {
 		style := ue.getDropDownMethodStyle(method)
@@ -212,19 +212,19 @@ func (ue *UrlEditor) updateMethodStyle(method string) {
 
 // SetEnvironmentVarStyle sets the style used to highlight an environment
 // variable in the URL text view.
-func (ue *UrlEditor) SetEnvironmentVarStyle(style tc.Style) *UrlEditor {
+func (ue *URLEditor) SetEnvironmentVarStyle(style tc.Style) *URLEditor {
 	ue.EnvironmentVarStyle = style
 	return ue
 }
 
 // SetTemplateVarStyle sets the style used to highlight an template variable.
-func (ue *UrlEditor) SetTemplateVarStyle(style tc.Style) *UrlEditor {
+func (ue *URLEditor) SetTemplateVarStyle(style tc.Style) *URLEditor {
 	ue.TemplateVarStyle = style
 	return ue
 }
 
 // SetForegroundColor sets the foreground color for the url editor.
-func (ue *UrlEditor) SetForegroundColor(fg tc.Color) *UrlEditor {
+func (ue *URLEditor) SetForegroundColor(fg tc.Color) *URLEditor {
 	ue.fg = fg
 	ue.Flex.SetBorderColor(fg)
 	return ue
@@ -232,7 +232,7 @@ func (ue *UrlEditor) SetForegroundColor(fg tc.Color) *UrlEditor {
 
 // viewMask is a text mask that displays environment variables and template
 // variables as highlighted tags.
-func (ue *UrlEditor) viewMask(text string) string {
+func (ue *URLEditor) viewMask(text string) string {
 	envVars := regexp.MustCompile(`{{\s?_\.\w+\s?}}`)
 	templVars := regexp.MustCompile(`{%\s?\w+\s'\w+'.*\s?%}`)
 	text = envVars.ReplaceAllStringFunc(text, func(s string) string {
@@ -253,7 +253,7 @@ func (ue *UrlEditor) viewMask(text string) string {
 
 // SetMethodStyleFunc sets a function that is called to receive an HTTP method
 // name and return a style for that method.
-func (ue *UrlEditor) SetMethodStyleFunc(fn func(string) tc.Style) *UrlEditor {
+func (ue *URLEditor) SetMethodStyleFunc(fn func(string) tc.Style) *URLEditor {
 	ue.getDropDownMethodStyle = fn
 	_, method := ue.method.GetCurrentOption()
 	ue.updateMethodStyle(method)
@@ -261,20 +261,20 @@ func (ue *UrlEditor) SetMethodStyleFunc(fn func(string) tc.Style) *UrlEditor {
 }
 
 // SetFocusFunc sets a function that is called to set focus on an element.
-func (ue *UrlEditor) SetFocusFunc(fn func(tv.Primitive)) *UrlEditor {
+func (ue *URLEditor) SetFocusFunc(fn func(tv.Primitive)) *URLEditor {
 	ue.focus = fn
 	return ue
 }
 
 // SetNeutralizeFocusFunc sets the function that is called to reset the app
 // focus.
-func (ue *UrlEditor) SetNeutralizeFocusFunc(fn func()) *UrlEditor {
+func (ue *URLEditor) SetNeutralizeFocusFunc(fn func()) *URLEditor {
 	ue.NeutralizeFocus = fn
 	return ue
 }
 
-// SetMethod sets the HTTP methods options in the method dropdown element.
-func (ue *UrlEditor) SetMethods(methods []string) *UrlEditor {
+// SetMethods sets the HTTP methods options in the method dropdown element.
+func (ue *URLEditor) SetMethods(methods []string) *URLEditor {
 	ue.methods = methods
 	ue.method.SetOptions(methods, nil)
 	return ue
@@ -282,20 +282,20 @@ func (ue *UrlEditor) SetMethods(methods []string) *UrlEditor {
 
 // SetMethodStyles sets the style for the selected and the unselected methods in
 // the *tview.DropDown list.
-func (ue *UrlEditor) SetMethodStyles(unselected, selected tc.Style) *UrlEditor {
+func (ue *URLEditor) SetMethodStyles(unselected, selected tc.Style) *URLEditor {
 	ue.method.SetListStyles(unselected, selected)
 	return ue
 }
 
 // SetTagFunc sets a function that formats text with styles into a tag.
-func (ue *UrlEditor) SetTagFunc(fn TagFunc) *UrlEditor {
+func (ue *URLEditor) SetTagFunc(fn TagFunc) *URLEditor {
 	ue.tagFunc = fn
 	return ue
 }
 
 // methodSelected is called when a method is selected in the *tview.DropDown and
 // it updates the method field style and resets the app's focus.
-func (ue *UrlEditor) methodSelected(method string, index int) {
+func (ue *URLEditor) methodSelected(method string, _ int) {
 	ue.updateMethodStyle(method)
 	if ue.NeutralizeFocus != nil {
 		ue.NeutralizeFocus()
@@ -306,7 +306,7 @@ func (ue *UrlEditor) methodSelected(method string, index int) {
 // method dropdown list. At the moment, this is necessary because the dropdown's
 // openList function is unexported and can only be triggered through the
 // MouseHandler or InputHandler functions.
-func (ue *UrlEditor) openMethodDropDown() {
+func (ue *URLEditor) openMethodDropDown() {
 	if ue.method.IsOpen() {
 		return
 	}

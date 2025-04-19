@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	var quiet, noPager, asJson, asJsonList *bool
+	var quiet, noPager, asJSON, asJSONList *bool
 	var cols *[]string
 	ProjCmd := &cobra.Command{
 		Use:     "response",
@@ -27,14 +27,14 @@ func init() {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			paginate := !(*noPager)
 			buf := bytes.NewBuffer(nil)
-			if *asJsonList {
+			if *asJSONList {
 				_ = json.NewEncoder(buf).Encode(inso.Responses)
 				return Output(buf, paginate)
 			}
-			if *asJson {
+			if *asJSON {
 				for _, rs := range inso.Responses {
 					_ = json.NewEncoder(buf).Encode(rs)
 				}
@@ -70,7 +70,7 @@ func init() {
 		Short:   "Get response info",
 		Long:    "Get basic json info about the given response",
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			paginate := !(*noPager)
 			id := args[0]
 			var res *insomnium.Response
@@ -97,8 +97,8 @@ func init() {
 
 	quiet = ProjCmd.PersistentFlags().BoolP("quiet", "q", false, "Return id only")
 	noPager = ProjCmd.PersistentFlags().BoolP("no-pager", "P", false, "Disable pager")
-	asJson = ProjLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
-	asJsonList = ProjLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
+	asJSON = ProjLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
+	asJSONList = ProjLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
 	cols = ProjLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "StatusCode", "Modified", "ParentID"}, "Set columns")
 
 	rootCmd.AddCommand(ProjCmd)

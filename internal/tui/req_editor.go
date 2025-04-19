@@ -19,7 +19,7 @@ func NewReqEditor() *ReqEditor {
 // URL editor element.
 type ReqEditor struct {
 	*tv.Flex
-	UrlEditor          *UrlEditor
+	URLEditor          *URLEditor
 	tabs               *ReqTabs
 	bg                 tc.Color
 	fg                 tc.Color
@@ -33,21 +33,21 @@ func (re *ReqEditor) CreateContent() {
 	re.Flex.SetDirection(tv.FlexRow).
 		SetBackgroundColor(re.bg)
 
-	if re.UrlEditor == nil {
-		re.CreateUrlEditor()
+	if re.URLEditor == nil {
+		re.CreateURLEditor()
 	}
 	if re.tabs == nil {
 		re.CreateTabs()
 	}
 
-	re.Flex.AddItem(re.UrlEditor, 3, 0, false).
+	re.Flex.AddItem(re.URLEditor, 3, 0, false).
 		AddItem(re.tabs, 0, 1, false)
 }
 
-// CreateUrlEditor initializes the URL editor and sets its border.
-func (re *ReqEditor) CreateUrlEditor() {
-	re.UrlEditor = NewUrlEditor()
-	re.UrlEditor.SetBorder(true)
+// CreateURLEditor initializes the URL editor and sets its border.
+func (re *ReqEditor) CreateURLEditor() {
+	re.URLEditor = NewURLEditor()
+	re.URLEditor.SetBorder(true)
 }
 
 // CreateTabs loads the tabs widget.
@@ -55,20 +55,20 @@ func (re *ReqEditor) CreateTabs() {
 	re.tabs = NewReqTabs()
 }
 
-// GetUrlElement returns the tview.Primitive used for URL editing.
-func (re *ReqEditor) GetUrlElement() tv.Primitive {
-	return re.UrlEditor.GetUrlElement()
+// GetURLElement returns the tview.Primitive used for URL editing.
+func (re *ReqEditor) GetURLElement() tv.Primitive {
+	return re.URLEditor.GetURLElement()
 }
 
 // GetMethodElement returns the tview.Primitive used for method editing.
 func (re *ReqEditor) GetMethodElement() tv.Primitive {
-	return re.UrlEditor.GetMethodElement()
+	return re.URLEditor.GetMethodElement()
 }
 
 // SetRequest updates the request data displayed in the editor.
 func (re *ReqEditor) SetRequest(req *insomnium.Request) *ReqEditor {
 	re.SetReqTitle(req)
-	re.UrlEditor.SetRequest(req)
+	re.URLEditor.SetRequest(req)
 	re.tabs.SetRequest(req)
 	return re
 }
@@ -86,25 +86,25 @@ func (re *ReqEditor) SetReqTitle(req *insomnium.Request) *ReqEditor {
 
 // SetEnvironmentVarStyle sets the style for environment variables.
 func (re *ReqEditor) SetEnvironmentVarStyle(style tc.Style) *ReqEditor {
-	re.UrlEditor.SetEnvironmentVarStyle(style)
+	re.URLEditor.SetEnvironmentVarStyle(style)
 	return re
 }
 
 // SetTemplateVarStyle sets the style for template variables.
 func (re *ReqEditor) SetTemplateVarStyle(style tc.Style) *ReqEditor {
-	re.UrlEditor.SetTemplateVarStyle(style)
+	re.URLEditor.SetTemplateVarStyle(style)
 	return re
 }
 
-// SetUrlInputFieldStyle sets the base style for the URL input widget.
-func (re *ReqEditor) SetUrlInputFieldStyle(style tc.Style) *ReqEditor {
-	re.UrlEditor.SetUrlInputFieldStyle(style)
+// SetURLInputFieldStyle sets the base style for the URL input widget.
+func (re *ReqEditor) SetURLInputFieldStyle(style tc.Style) *ReqEditor {
+	re.URLEditor.SetURLInputFieldStyle(style)
 	return re
 }
 
 // SetMethodStyleFunc sets a function that returns a style for an HTTP method.
 func (re *ReqEditor) SetMethodStyleFunc(fn func(string) tc.Style) *ReqEditor {
-	re.UrlEditor.SetMethodStyleFunc(fn)
+	re.URLEditor.SetMethodStyleFunc(fn)
 	return re
 }
 
@@ -112,7 +112,7 @@ func (re *ReqEditor) SetMethodStyleFunc(fn func(string) tc.Style) *ReqEditor {
 func (re *ReqEditor) SetBackgroundColor(bg tc.Color) *ReqEditor {
 	re.bg = bg
 	re.Flex.SetBackgroundColor(bg)
-	re.UrlEditor.SetBackgroundColor(bg)
+	re.URLEditor.SetBackgroundColor(bg)
 	re.tabs.SetBackgroundColor(bg)
 	return re
 }
@@ -122,7 +122,7 @@ func (re *ReqEditor) SetForegroundColor(fg tc.Color) *ReqEditor {
 	re.bg = fg
 	re.Flex.SetBorderColor(fg)
 	re.Flex.SetTitleColor(fg)
-	re.UrlEditor.SetForegroundColor(fg)
+	re.URLEditor.SetForegroundColor(fg)
 	re.tabs.SetForegroundColor(fg)
 	return re
 }
@@ -143,32 +143,32 @@ func (re *ReqEditor) SetUnselectedReqTabColor(c tc.Color) *ReqEditor {
 
 // SetFocusFunc sets a function that is called to set focus on an element.
 func (re *ReqEditor) SetFocusFunc(fn func(tv.Primitive)) *ReqEditor {
-	re.UrlEditor.SetFocusFunc(fn)
+	re.URLEditor.SetFocusFunc(fn)
 	return re
 }
 
 // SetNeutralizeFocusFunc sets the function to reset the app's focus.
 func (re *ReqEditor) SetNeutralizeFocusFunc(fn func()) *ReqEditor {
-	re.UrlEditor.SetNeutralizeFocusFunc(fn)
+	re.URLEditor.SetNeutralizeFocusFunc(fn)
 	re.tabs.SetNeutralizeFocusFunc(fn)
 	return re
 }
 
 // SetMethods sets the HTTP method options in the dropdown.
 func (re *ReqEditor) SetMethods(methods []string) *ReqEditor {
-	re.UrlEditor.SetMethods(methods)
+	re.URLEditor.SetMethods(methods)
 	return re
 }
 
 // SetMethodStyles sets the styles for selected and unselected methods.
 func (re *ReqEditor) SetMethodStyles(unselected, selected tc.Style) *ReqEditor {
-	re.UrlEditor.SetMethodStyles(unselected, selected)
+	re.URLEditor.SetMethodStyles(unselected, selected)
 	return re
 }
 
 // SetTagFunc sets a function that formats text with styles into a tag.
 func (re *ReqEditor) SetTagFunc(fn TagFunc) *ReqEditor {
-	re.UrlEditor.SetTagFunc(fn)
+	re.URLEditor.SetTagFunc(fn)
 	return re
 }
 

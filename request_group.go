@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	var quiet, noPager, asJson, asJsonList *bool
+	var quiet, noPager, asJSON, asJSONList *bool
 	var cols *[]string
 	ReqGrpCmd := &cobra.Command{
 		Use:     "request-group",
@@ -27,14 +27,14 @@ func init() {
 		Args:    cobra.NoArgs,
 		Aliases: []string{"ls"},
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			paginate := !(*noPager)
 			buf := bytes.NewBuffer(nil)
-			if *asJsonList {
+			if *asJSONList {
 				_ = json.NewEncoder(buf).Encode(inso.RequestGroups)
 				return Output(buf, paginate)
 			}
-			if *asJson {
+			if *asJSON {
 				for _, rg := range inso.RequestGroups {
 					_ = json.NewEncoder(buf).Encode(rg)
 				}
@@ -70,7 +70,7 @@ func init() {
 		Short:   "Get request group info",
 		Long:    "Get basic json info about the given request group",
 		Version: "v0.0.0",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			paginate := !(*noPager)
 			id := args[0]
 			var rqgr *insomnium.RequestGroup
@@ -97,8 +97,8 @@ func init() {
 
 	quiet = ReqGrpCmd.PersistentFlags().BoolP("quiet", "q", false, "Return id only")
 	noPager = ReqGrpCmd.PersistentFlags().BoolP("no-pager", "P", false, "Disable pager")
-	asJson = ReqGrpLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
-	asJsonList = ReqGrpLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
+	asJSON = ReqGrpLsCmd.PersistentFlags().BoolP("as-json", "j", false, "As json")
+	asJSONList = ReqGrpLsCmd.PersistentFlags().BoolP("as-json-list", "J", false, "As json list")
 	cols = ReqGrpLsCmd.PersistentFlags().StringSliceP("cols", "c", []string{"ID", "Name", "Modified", "ParentID"}, "Set columns")
 
 	rootCmd.AddCommand(ReqGrpCmd)

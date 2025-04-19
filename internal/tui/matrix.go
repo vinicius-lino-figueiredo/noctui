@@ -78,7 +78,7 @@ func (m *Matrix) SetHeight(h int) *Matrix {
 	return m
 }
 
-// Regresh reloads and reorders the grid elements.
+// Refresh reloads and reorders the grid elements.
 func (m *Matrix) Refresh() {
 	m.Grid.Clear()
 	m.boxes = m.boxes[:0]
@@ -182,9 +182,8 @@ func (m *Matrix) Get(x, y int) (tv.Primitive, bool) {
 	if i >= len(m.itms) {
 		if i <= m.w*((len(m.itms)+m.w-1)/m.w) {
 			return m.itms[len(m.itms)-1], true
-		} else {
-			return nil, false
 		}
+		return nil, false
 	}
 	return m.itms[i], true
 }
