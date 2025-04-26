@@ -35,10 +35,10 @@ var (
 	styleDefault = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
 
 	// CmdFieldStyle is the style used for the command input field.
-	CmdFieldStyle = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
+	CmdFieldStyle = styleDefault
 
 	// BtnStyle is the style used for buttons.
-	BtnStyle = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
+	BtnStyle = styleDefault
 
 	// ActiveBtnStyle is the style used for active buttons.
 	ActiveBtnStyle = BtnStyle
@@ -47,16 +47,16 @@ var (
 	CmdFieldErrorStyle = CmdFieldStyle.Foreground(tc.ColorRed)
 
 	// environmentVarStyle is the style for env variable tags in the URL view.
-	environmentVarStyle = tc.StyleDefault.Background(tc.ColorMediumPurple).Foreground(tc.ColorBlack)
+	environmentVarStyle = styleDefault.Background(tc.ColorMediumPurple).Foreground(tc.ColorBlack)
 
 	// templateVarStyle is the style for template variable tags in the URL view.
-	templateVarStyle = tc.StyleDefault.Background(tc.ColorSkyblue).Foreground(tc.ColorBlack)
+	templateVarStyle = styleDefault.Background(tc.ColorSkyblue).Foreground(tc.ColorBlack)
 
 	// urlInputFieldStyle is the style for the URL input field.
-	urlInputFieldStyle = tc.StyleDefault.Background(tc.ColorBlack).Foreground(tc.ColorWhite)
+	urlInputFieldStyle = styleDefault
 
 	// DefaultMethodStyle is the default style for HTTP methods.
-	DefaultMethodStyle = tc.StyleDefault.Background(tc.ColorBlack)
+	DefaultMethodStyle = styleDefault
 
 	// DefaultMethodColor is the default font color for HTTP methods.
 	DefaultMethodColor = tc.ColorWhite
@@ -86,10 +86,10 @@ var (
 	methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
 
 	// unselectedMehodStyle is the style for an unselected HTTP method.
-	unselectedMehodStyle = tc.StyleDefault.Background(tc.ColorWhite).Foreground(tc.ColorBlack)
+	unselectedMehodStyle = styleDefault.Background(tc.ColorWhite).Foreground(tc.ColorBlack)
 
 	// selectedMehodStyle is the style for a selected HTTP method.
-	selectedMehodStyle = tc.StyleDefault.Background(tc.ColorBlack).Foreground(tc.ColorWhite)
+	selectedMehodStyle = styleDefault.Background(tc.ColorBlack).Foreground(tc.ColorWhite)
 
 	// tagStart defines the starting delimiter for a tag.
 	tagStart = "▐"
@@ -97,16 +97,25 @@ var (
 	// tagEnd defines the ending delimiter for a tag.
 	tagEnd = "▌"
 
+	// requestBodyPlaceholderStyle is the style used for placeholder text in
+	// the request body text area.
 	requestBodyPlaceholderStyle = CmdFieldStyle.Foreground(tc.ColorDarkGray)
 
+	// requestTabSelectedColor is the foreground color of the selected
+	// request tab.
 	requestTabSelectedColor = fgColor
 
+	// requestTabUnselectedColor is the foreground color of unselected
+	// request tabs.
 	requestTabUnselectedColor = tc.ColorDarkSlateGray
 
-	headerInputStyle = tc.StyleDefault.Background(fgColor).Foreground(bgColor)
+	// headerInputStyle defines the style for the header input field.
+	headerInputStyle = styleDefault.Background(fgColor).Foreground(bgColor)
 
-	requestBodyInputStyle = tc.StyleDefault.Background(bgColor).Foreground(fgColor)
+	// requestBodyInputStyle defines the style for the body input field.
+	requestBodyInputStyle = styleDefault.Background(bgColor).Foreground(fgColor)
 
+	// reqBodyTheme is the theme used for the request body editor.
 	reqBodyTheme = "catppuccin-macchiato"
 
 	// statusCodeFG is the foreground color for status code tags.
@@ -357,7 +366,7 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 // code.
 func (s *Screen) ResponseStyleFn(res *insomnium.Response) tc.Style {
 	color := s.GetStatusCodeColor(res)
-	return tc.StyleDefault.Foreground(statusCodeFG).Background(color)
+	return styleDefault.Foreground(statusCodeFG).Background(color)
 }
 
 // GetStatusCodeColor maps a response status code to a background color.
@@ -416,7 +425,7 @@ func (s *Screen) TextToTag(txt string, baseStyle, tagStyle tc.Style) string {
 func (s *Screen) GetHalfBlockStyle(tagStyle, noStyle tc.Style) tc.Style {
 	_, fg, _ := tagStyle.Decompose()
 	_, bg, _ := noStyle.Decompose()
-	return tc.StyleDefault.Background(bg).Foreground(fg)
+	return styleDefault.Background(bg).Foreground(fg)
 }
 
 // StyleText returns the styled version of the given text.

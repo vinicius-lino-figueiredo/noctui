@@ -27,6 +27,7 @@ type ReqBody struct {
 	styleText  func(string, tc.Style) string
 	ResetFocus func()
 	bg         tc.Color
+	fg         tc.Color
 	theme      string
 	lexer      chroma.Lexer
 }
@@ -184,5 +185,21 @@ func (rb *ReqBody) SetRequest(req *insomnium.Request) *ReqBody {
 // SetResetFocus sets the callback used to release focus.
 func (rb *ReqBody) SetResetFocus(fn func()) *ReqBody {
 	rb.ResetFocus = fn
+	return rb
+}
+
+func (rb *ReqBody) SetBackgroundColor(bg tc.Color) *ReqBody {
+	rb.bg = bg
+	rb.Pages.SetBackgroundColor(bg)
+	rb.viewer.SetBackgroundColor(bg)
+	rb.editor.SetBackgroundColor(bg)
+	return rb
+}
+
+func (rb *ReqBody) SetForegroundColor(fg tc.Color) *ReqBody {
+	rb.fg = fg
+	rb.Pages.SetBorderColor(fg)
+	rb.viewer.SetBorderColor(fg)
+	rb.editor.SetBorderColor(fg)
 	return rb
 }

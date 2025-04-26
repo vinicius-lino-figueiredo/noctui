@@ -86,7 +86,7 @@ func (rt *ReqTabs) SetBackgroundColor(bg tc.Color) *ReqTabs {
 func (rt *ReqTabs) SetForegroundColor(fg tc.Color) *ReqTabs {
 	rt.fg = fg
 	rt.Tabs.SetForegroundColor(fg)
-	rt.BodyTab.SetBorderColor(fg)
+	rt.BodyTab.SetForegroundColor(fg)
 	rt.HeadersTab.SetForegroundColor(fg)
 	for _, header := range rt.HeadersTab.itms {
 		h := header.(*tv.Button)

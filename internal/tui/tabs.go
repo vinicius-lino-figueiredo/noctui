@@ -92,6 +92,7 @@ func (t *Tabs) OpenTab(name string) *Tabs {
 func (t *Tabs) SetForegroundColor(fg tc.Color) *Tabs {
 	t.fg = fg
 	t.header.SetBordersColor(fg)
+	t.Flex.SetBorderColor(fg)
 	return t
 }
 
@@ -99,6 +100,7 @@ func (t *Tabs) SetForegroundColor(fg tc.Color) *Tabs {
 func (t *Tabs) SetBackgroundColor(bg tc.Color) *Tabs {
 	t.bg = bg
 	t.header.SetBackgroundColor(bg)
+	t.Flex.SetBackgroundColor(bg)
 	return t
 }
 

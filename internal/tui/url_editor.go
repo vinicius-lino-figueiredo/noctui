@@ -36,6 +36,7 @@ type URLEditor struct {
 	TemplateVarStyle       tc.Style
 	bg                     tc.Color
 	fg                     tc.Color
+	box                    *tv.Box
 	tagFunc                func(string, tc.Style, tc.Style) string
 	getDropDownMethodStyle func(string) tc.Style
 	focus                  func(tv.Primitive)
@@ -50,14 +51,13 @@ func (ue *URLEditor) CreateElements() {
 	ue.Flex.Clear()
 	ue.CreateMethod()
 	ue.CreatePages()
+	ue.CreateBox()
 
-	urlPaddingFlex := tv.NewFlex()
-	urlPaddingFlex.
+	ue.Flex.AddItem(ue.box, 1, 0, false).
+		AddItem(ue.method, 5, 0, false).
+		AddItem(ue.box, 1, 0, false).
 		AddItem(ue.pages, 0, 1, false).
-		SetBorderPadding(0, 0, 1, 1)
-	ue.Flex.AddItem(ue.method, 5, 0, false).
-		AddItem(urlPaddingFlex, 0, 1, false).
-		SetBorderPadding(0, 0, 1, 0)
+		AddItem(ue.box, 1, 0, false)
 }
 
 // CreateMethod loads the method *tview.DropDown element.
@@ -67,6 +67,14 @@ func (ue *URLEditor) CreateMethod() {
 	}
 	ue.method.SetFocusFunc(ue.methodFocus).
 		SetInputCapture(ue.methodCapture)
+}
+
+// CreateBox loads the method *tview.Box element.
+func (ue *URLEditor) CreateBox() {
+	if ue.box == nil {
+		ue.box = tv.NewBox()
+	}
+	ue.box.SetBackgroundColor(ue.bg)
 }
 
 // CreatePages loads the URL *tview.TextView/*tview.InputField page elements.
@@ -185,6 +193,7 @@ func (ue *URLEditor) SetRequest(req *insomnium.Request) {
 func (ue *URLEditor) SetURLInputFieldStyle(style tc.Style) *URLEditor {
 	ue.inputFieldStyle = style
 	ue.urlInput.SetFieldStyle(style)
+	ue.urlView.SetTextStyle(style)
 	return ue
 }
 
@@ -220,6 +229,15 @@ func (ue *URLEditor) SetEnvironmentVarStyle(style tc.Style) *URLEditor {
 // SetTemplateVarStyle sets the style used to highlight an template variable.
 func (ue *URLEditor) SetTemplateVarStyle(style tc.Style) *URLEditor {
 	ue.TemplateVarStyle = style
+	return ue
+}
+
+// SetrBackgroundColor sets the foreground color for the url editor.
+func (ue *URLEditor) SetBackgroundColor(bg tc.Color) *URLEditor {
+	ue.bg = bg
+	ue.Flex.SetBackgroundColor(bg)
+	ue.box.SetBackgroundColor(bg)
+	ue.pages.SetBackgroundColor(bg)
 	return ue
 }
 
