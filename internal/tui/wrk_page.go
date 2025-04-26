@@ -1,6 +1,9 @@
 package tui
 
 import (
+	"cmp"
+	"slices"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 	"github.com/vinicius-lino-figueiredo/insomnium"
@@ -24,7 +27,7 @@ type WrkPage struct {
 	WrkTree            *WrkTree
 	LeftPanel          *tv.Flex
 	MiddlePanel        *ReqEditor
-	RightPanel         *tv.Flex
+	RightPanel         *ResponseView
 	request            *insomnium.Request
 	bg                 tc.Color
 	fg                 tc.Color
@@ -77,7 +80,7 @@ func (wp *WrkPage) CreateMiddlePanel() {
 
 // CreateRightPanel creates the *tview.Flex that holds the response viewer.
 func (wp *WrkPage) CreateRightPanel() {
-	wp.RightPanel = tv.NewFlex()
+	wp.RightPanel = NewResponseView()
 	wp.RightPanel.SetBorder(true)
 }
 
@@ -85,6 +88,33 @@ func (wp *WrkPage) CreateRightPanel() {
 func (wp *WrkPage) SetRequest(req *insomnium.Request) {
 	wp.request = req
 	wp.MiddlePanel.SetRequest(req)
+	r := wp.getResponses(req)
+	res := wp.getOldestRes(r)
+	wp.RightPanel.SetResponses(req, r)
+	wp.RightPanel.SetResponse(res)
+}
+
+func (wp *WrkPage) getResponses(req *insomnium.Request) []*insomnium.Response {
+	if req == nil {
+		return nil
+	}
+	responses := make([]*insomnium.Response, 0, len(wp.inso.Responses))
+	for _, res := range wp.inso.Responses {
+		if res.ParentID == req.ID {
+			responses = append(responses, &res)
+		}
+	}
+	return responses
+}
+
+func (wp *WrkPage) getOldestRes(r []*insomnium.Response) *insomnium.Response {
+	if len(r) == 0 {
+		return nil
+	}
+	cmpFn := func(a, b *insomnium.Response) int {
+		return cmp.Compare(a.Modified, b.Modified)
+	}
+	return slices.MaxFunc(r, cmpFn)
 }
 
 // GetRequest returns the current loaded request.
@@ -102,6 +132,7 @@ func (wp *WrkPage) SetResetFocusFunc(fn func()) *WrkPage {
 	wp.ResetFocus = fn
 	wp.WrkTree.SetResetFocusFunc(fn)
 	wp.MiddlePanel.SetResetFocusFunc(fn)
+	wp.RightPanel.SetResetFocusFunc(fn)
 	return wp
 }
 
@@ -152,6 +183,25 @@ func (wp *WrkPage) SetMethodStyleFunc(fn func(string) tc.Style) *WrkPage {
 // SetTagFunc sets a function that formats text with styles into a tag.
 func (wp *WrkPage) SetTagFunc(fn TagFunc) *WrkPage {
 	wp.MiddlePanel.SetTagFunc(fn)
+	wp.RightPanel.SetTagFunc(fn)
+	return wp
+}
+
+// SetTagStyle sets the style for tags in the response header.
+func (wp *WrkPage) SetTagStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetTagStyle(style)
+	return wp
+}
+
+// SetResponseOptionSelectedStyle sets the style for selected response options.
+func (wp *WrkPage) SetResponseOptionSelectedStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseOptionSelectedStyle(style)
+	return wp
+}
+
+// SetSelectedTagStyle sets the style for the selected tag in the header.
+func (wp *WrkPage) SetSelectedTagStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetSelectedTagStyle(style)
 	return wp
 }
 
@@ -171,7 +221,7 @@ func (wp *WrkPage) SetForegroundColor(fg tc.Color) *WrkPage {
 	wp.LeftPanel.SetBorderColor(fg)
 	wp.WrkTree.SetForegroundColor(fg)
 	wp.MiddlePanel.SetForegroundColor(fg)
-	wp.RightPanel.SetBorderColor(fg)
+	wp.RightPanel.SetForegroundColor(fg)
 	return wp
 }
 
@@ -212,5 +262,53 @@ func (wp *WrkPage) SetRequestBodyInputStyle(style tc.Style) *WrkPage {
 // text area.
 func (wp *WrkPage) SetRequestBodyTheme(theme string) *WrkPage {
 	wp.MiddlePanel.SetRequestBodyTheme(theme)
+	return wp
+}
+
+// SetResponseStyleFn sets the function for customizing response styles.
+func (wp *WrkPage) SetResponseStyleFn(fn func(*insomnium.Response) tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseStyleFn(fn)
+	return wp
+}
+
+// SetResponseElapsedTimeTagStyle sets the style for the elapsed time tag.
+func (wp *WrkPage) SetResponseElapsedTimeTagStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseElapsedTimeTagStyle(style)
+	return wp
+}
+
+// SetResponseBytesReadTagStyle sets the style for the bytes read tag.
+func (wp *WrkPage) SetResponseBytesReadTagStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseBytesReadTagStyle(style)
+	return wp
+}
+
+// SetResponseLastCallTagStyle sets the style for the last call tag.
+func (wp *WrkPage) SetResponseLastCallTagStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseLastCallTagStyle(style)
+	return wp
+}
+
+// SetResponseEmptyBarRune sets the rune for the empty progress bar.
+func (wp *WrkPage) SetResponseEmptyBarRune(r rune) *WrkPage {
+	wp.RightPanel.SetResponseEmptyBarRune(r)
+	return wp
+}
+
+// SetResponseFilledBarRune sets the rune for the filled progress bar.
+func (wp *WrkPage) SetResponseFilledBarRune(r rune) *WrkPage {
+	wp.RightPanel.SetResponseFilledBarRune(r)
+	return wp
+}
+
+// SetResponseEmptyBarStyle sets the style for the empty progress bar.
+func (wp *WrkPage) SetResponseEmptyBarStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseEmptyBarStyle(style)
+	return wp
+}
+
+// SetResponseFilledBarStyle sets the style for the filled progress bar.
+func (wp *WrkPage) SetResponseFilledBarStyle(style tc.Style) *WrkPage {
+	wp.RightPanel.SetResponseFilledBarStyle(style)
 	return wp
 }

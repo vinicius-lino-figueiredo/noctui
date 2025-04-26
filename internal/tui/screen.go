@@ -32,6 +32,8 @@ var (
 	// bgColor is the default background color for the TUI.
 	bgColor = tc.ColorBlack
 
+	styleDefault = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
+
 	// CmdFieldStyle is the style used for the command input field.
 	CmdFieldStyle = tc.StyleDefault.Foreground(fgColor).Background(bgColor)
 
@@ -106,6 +108,71 @@ var (
 	requestBodyInputStyle = tc.StyleDefault.Background(bgColor).Foreground(fgColor)
 
 	reqBodyTheme = "catppuccin-macchiato"
+
+	// statusCodeFG is the foreground color for status code tags.
+	statusCodeFG = tc.ColorWhite
+
+	// statusNoResponseColor is the color used when there's no response.
+	statusNoResponseColor = tc.ColorBlack
+
+	// status0Color is the color used for status code 0.
+	status0Color = tc.ColorDarkRed
+
+	// status1xxColor is the color used for 1xx HTTP status codes.
+	status1xxColor = tc.ColorRed
+
+	// status2xxColor is the color used for 2xx HTTP status codes.
+	status2xxColor = tc.ColorDarkGreen
+
+	// status3xxColor is the color used for 3xx HTTP status codes.
+	status3xxColor = tc.ColorRed
+
+	// status4xxColor is the color used for 4xx HTTP status codes.
+	status4xxColor = tc.ColorOrange
+
+	// status5xxColor is the color used for 5xx HTTP status codes.
+	status5xxColor = tc.ColorDarkRed
+
+	// statusOthersColor is the color used for unknown HTTP status codes.
+	statusOthersColor = tc.ColorDarkRed
+
+	// infoTagStyle is the default style used in informational tags.
+	infoTagStyle = styleDefault.Background(tc.ColorDarkSlateGray).Foreground(tc.ColorWhite)
+
+	// responseElapsedTimeTagStyle is the style used for elapsed time tags.
+	responseElapsedTimeTagStyle = infoTagStyle
+
+	// responseBytesReadTagStyle is the style used for response size tags.
+	responseBytesReadTagStyle = infoTagStyle
+
+	// responseLastCallTagStyle is the style used for the last call tag.
+	responseLastCallTagStyle = infoTagStyle
+
+	// responseDropDownTagStyle is the tag style for unselected tags in the
+	// response dropdown.
+	responseDropDownTagStyle = infoTagStyle
+
+	// responseDrowDownSelectedTagStyle is the tag style for selected tags
+	// in the response dropdown.
+	responseDrowDownSelectedTagStyle = infoTagStyle.Background(tc.ColorDarkGray)
+
+	// selectedResponseOptionStyle is the style for selected dropdown
+	// options.
+	selectedResponseOptionStyle = infoTagStyle.Background(tc.ColorLightGray)
+
+	// responseEmptyBarRune is the rune used to draw the scrollbar's empty
+	// space.
+	responseEmptyBarRune = '█'
+
+	// responseFilledBarRune is the rune used to draw the scrollbar's filled
+	// space.
+	responseFilledBarRune = '█'
+
+	// responseEmptyBarStyle is the style for the empty scrollbar segment.
+	responseEmptyBarStyle = styleDefault.Foreground(tc.ColorGray)
+
+	// responseFilledBarStyle is the style for the filled scrollbar segment.
+	responseFilledBarStyle = styleDefault.Foreground(tc.ColorBlue)
 )
 
 // Screen represents the TUI screen, holding the main elements of the interface.
@@ -270,8 +337,49 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 		SetHeaderInputStyle(headerInputStyle).
 		SetStyleTextFunc(s.StyleText).
 		SetRequestBodyInputStyle(requestBodyInputStyle).
-		SetRequestBodyTheme(reqBodyTheme)
+		SetRequestBodyTheme(reqBodyTheme).
+		SetResponseStyleFn(s.ResponseStyleFn).
+		SetResponseElapsedTimeTagStyle(responseElapsedTimeTagStyle).
+		SetResponseBytesReadTagStyle(responseBytesReadTagStyle).
+		SetResponseLastCallTagStyle(responseLastCallTagStyle).
+		SetTagStyle(responseDropDownTagStyle).
+		SetSelectedTagStyle(responseDrowDownSelectedTagStyle).
+		SetResponseOptionSelectedStyle(selectedResponseOptionStyle).
+		SetResponseEmptyBarRune(responseEmptyBarRune).
+		SetResponseEmptyBarStyle(responseEmptyBarStyle).
+		SetResponseFilledBarRune(responseFilledBarRune).
+		SetResponseFilledBarStyle(responseFilledBarStyle)
+
 	return s.wrk
+}
+
+// ResponseStyleFn returns the style to display a response, based on its status
+// code.
+func (s *Screen) ResponseStyleFn(res *insomnium.Response) tc.Style {
+	color := s.GetStatusCodeColor(res)
+	return tc.StyleDefault.Foreground(statusCodeFG).Background(color)
+}
+
+// GetStatusCodeColor maps a response status code to a background color.
+func (s *Screen) GetStatusCodeColor(res *insomnium.Response) tc.Color {
+	switch {
+	case res == nil:
+		return statusNoResponseColor
+	case res.StatusCode == 0:
+		return status0Color
+	case res.StatusCode < 200:
+		return status1xxColor
+	case res.StatusCode < 300:
+		return status2xxColor
+	case res.StatusCode < 400:
+		return status3xxColor
+	case res.StatusCode < 500:
+		return status4xxColor
+	case res.StatusCode < 600:
+		return status5xxColor
+	default:
+		return statusOthersColor
+	}
 }
 
 // Focus sets focus in the given element.
@@ -356,6 +464,7 @@ func (s *Screen) GetCommands() map[string]func(args []string) {
 		"method":  s.MethodCommand,
 		"body":    s.MethodBody,
 		"headers": s.MethodHeaders,
+		"res":     s.MethodRes,
 	}
 }
 
@@ -447,6 +556,17 @@ func (s *Screen) MethodHeaders(args []string) {
 		focus := s.wrk.MiddlePanel.tabs.HeadersTab
 		s.app.SetFocus(focus)
 	}
+}
+
+// MethodRes focuses the response dropdown for the current request.
+func (s *Screen) MethodRes(_ []string) {
+	pageName, _ := s.pages.GetFrontPage()
+	req := s.wrk.GetRequest()
+	if pageName != "wrk" || len(s.wrk.getResponses(req)) == 0 {
+		return
+	}
+	s.wrk.RightPanel.Header.responseDropDown.SetOpen(true)
+	s.app.SetFocus(s.wrk.RightPanel.Header.responseDropDown)
 }
 
 // InputFn defines a function type used by tview to capture input, taking a

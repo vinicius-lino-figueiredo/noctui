@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/alecthomas/chroma/v2 v2.16.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/rivo/tview v0.0.0-20250330220935-949945f8d922
