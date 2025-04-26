@@ -279,9 +279,9 @@ func (ue *URLEditor) SetMethodStyleFunc(fn func(string) tc.Style) *URLEditor {
 }
 
 // SetFocusFunc sets a function that is called to set focus on an element.
-func (ue *URLEditor) SetFocusFunc(fn func(tv.Primitive)) *URLEditor {
-	ue.focus = fn
-	return ue
+func (ue *URLEditor) Focus(delegate func(tv.Primitive)) {
+	ue.focus = delegate
+	ue.Flex.Focus(delegate)
 }
 
 // SetResetFocusFunc sets the function that is called to reset the app

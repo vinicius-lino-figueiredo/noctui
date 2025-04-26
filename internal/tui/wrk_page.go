@@ -136,12 +136,6 @@ func (wp *WrkPage) SetResetFocusFunc(fn func()) *WrkPage {
 	return wp
 }
 
-// SetFocusFunc sets a function that is called to set focus on an element.
-func (wp *WrkPage) SetFocusFunc(fn func(tv.Primitive)) *WrkPage {
-	wp.MiddlePanel.SetFocusFunc(fn)
-	return wp
-}
-
 // SetEnvironmentVarStyle sets the style for the env url tag.
 func (wp *WrkPage) SetEnvironmentVarStyle(style tc.Style) *WrkPage {
 	wp.MiddlePanel.SetEnvironmentVarStyle(style)

@@ -330,7 +330,6 @@ func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
 // CreateWrkScreen creates the page for managing a workspace.
 func (s *Screen) CreateWrkScreen() *WrkPage {
 	s.wrk = NewWrkPage(s.inso).
-		SetFocusFunc(s.Focus).
 		SetResetFocusFunc(s.ResetFocus).
 		SetEnvironmentVarStyle(environmentVarStyle).
 		SetTemplateVarStyle(templateVarStyle).
@@ -389,11 +388,6 @@ func (s *Screen) GetStatusCodeColor(res *insomnium.Response) tc.Color {
 	default:
 		return statusOthersColor
 	}
-}
-
-// Focus sets focus in the given element.
-func (s *Screen) Focus(element tv.Primitive) {
-	s.app.SetFocus(element)
 }
 
 // ResetFocus sets the focus back to the command input field.

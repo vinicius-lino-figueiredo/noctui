@@ -141,12 +141,6 @@ func (re *ReqEditor) SetUnselectedReqTabColor(c tc.Color) *ReqEditor {
 	return re
 }
 
-// SetFocusFunc sets a function that is called to set focus on an element.
-func (re *ReqEditor) SetFocusFunc(fn func(tv.Primitive)) *ReqEditor {
-	re.URLEditor.SetFocusFunc(fn)
-	return re
-}
-
 // SetResetFocusFunc sets the function to reset the app's focus.
 func (re *ReqEditor) SetResetFocusFunc(fn func()) *ReqEditor {
 	re.URLEditor.SetResetFocusFunc(fn)
