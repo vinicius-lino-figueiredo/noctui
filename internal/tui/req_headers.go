@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"main/internal/component"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 	"github.com/vinicius-lino-figueiredo/insomnium"
@@ -17,7 +19,7 @@ func NewReqHeaders() *ReqHeaders {
 // ReqHeaders is a tview widget for managing and editing HTTP headers. It embeds
 // a Matrix to organize the header fields in a grid layout.
 type ReqHeaders struct {
-	*Matrix
+	*component.Matrix
 	inputStyle tc.Style
 	focus      func(tv.Primitive)
 	ResetFocus func()
@@ -27,7 +29,7 @@ type ReqHeaders struct {
 // input capture and dimensions.
 func (rh *ReqHeaders) Load() {
 	if rh.Matrix == nil {
-		rh.Matrix = NewMatrix()
+		rh.Matrix = component.NewMatrix()
 	}
 	rh.SetWidth(1).
 		SetHeight(5).
@@ -38,8 +40,8 @@ func (rh *ReqHeaders) Load() {
 // focus/blur behavior.
 func (rh *ReqHeaders) NewHeader(key string, value string) *Header {
 	return NewHeader(key, value).
-		SetBackgroundColor(rh.bg).
-		SetForegroundColor(rh.fg).
+		SetBackgroundColor(rh.GetBackgroundColor()).
+		SetForegroundColor(rh.GetForegroundColor()).
 		SetFocusFunc(rh.headerFocus).
 		SetBlurFunc(rh.headerBlur).
 		SetInputStyle(rh.inputStyle)
@@ -106,14 +108,14 @@ func (rh *ReqHeaders) SetResetFocusFunc(fn func()) *ReqHeaders {
 
 // SetRequest replaces the current headers with those from the given request.
 func (rh *ReqHeaders) SetRequest(req *insomnium.Request) *ReqHeaders {
-	rh.Matrix.itms = rh.Matrix.itms[:0]
+	rh.Matrix.Clear()
 	if req == nil {
 		rh.Matrix.Refresh()
 		return rh
 	}
 	for _, header := range req.Headers {
 		b := rh.NewHeader(header.Name, header.Value)
-		rh.Matrix.itms = append(rh.Matrix.itms, b)
+		rh.Matrix.AddItem(b)
 	}
 	rh.Matrix.Refresh()
 	return rh

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"main/internal/component"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 	"github.com/vinicius-lino-figueiredo/insomnium"
@@ -19,7 +21,7 @@ func NewReqTabs() *ReqTabs {
 // embeds a *Tabs to switch between different request editors like body and
 // headers.
 type ReqTabs struct {
-	*Tabs
+	*component.Tabs
 	BodyTab          *ReqBody
 	HeadersTab       *ReqHeaders
 	bg               tc.Color
@@ -38,7 +40,7 @@ func (rt *ReqTabs) Load() {
 		rt.LoadHeadersTab()
 	}
 	if rt.Tabs == nil {
-		rt.Tabs = NewTabs()
+		rt.Tabs = component.NewTabs()
 	}
 	rt.AddTab("Body", rt.BodyTab)
 	rt.AddTab("Headers", rt.HeadersTab)
@@ -88,7 +90,7 @@ func (rt *ReqTabs) SetForegroundColor(fg tc.Color) *ReqTabs {
 	rt.Tabs.SetForegroundColor(fg)
 	rt.BodyTab.SetForegroundColor(fg)
 	rt.HeadersTab.SetForegroundColor(fg)
-	for _, header := range rt.HeadersTab.itms {
+	for _, header := range rt.HeadersTab.GetItems() {
 		h := header.(*tv.Button)
 		h.SetBorderColor(fg)
 	}
@@ -108,7 +110,7 @@ func (rt *ReqTabs) SetResetFocusFunc(fn func()) *ReqTabs {
 // the Headers tab.
 func (rt *ReqTabs) SetHeaderInputStyle(style tc.Style) *ReqTabs {
 	rt.headerInputStyle = style
-	for _, header := range rt.HeadersTab.itms {
+	for _, header := range rt.HeadersTab.GetItems() {
 		h := header.(*Header)
 		h.SetInputStyle(style)
 	}

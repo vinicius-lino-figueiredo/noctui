@@ -2,6 +2,7 @@ package tui
 
 import (
 	"cmp"
+	"main/internal/component"
 	"slices"
 
 	tc "github.com/gdamore/tcell/v2"
@@ -32,7 +33,7 @@ type WrkPage struct {
 	bg                 tc.Color
 	fg                 tc.Color
 	ResetFocus         func()
-	MatrixInputCapture func(*Matrix) InputFn
+	MatrixInputCapture func(*component.Matrix) InputFn
 }
 
 // GetReqTreeElement returns the tree view element.

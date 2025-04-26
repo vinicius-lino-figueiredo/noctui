@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"main/internal/component"
 	"regexp"
 	"slices"
 	"strings"
@@ -29,7 +30,7 @@ type URLEditor struct {
 	methods                []string
 	method                 *tv.DropDown
 	pages                  *tv.Pages
-	urlView                *MaskedTextView
+	urlView                *component.MaskedTextView
 	urlInput               *tv.InputField
 	inputFieldStyle        tc.Style
 	EnvironmentVarStyle    tc.Style
@@ -96,7 +97,7 @@ func (ue *URLEditor) CreateURLView() {
 	if ue.pages == nil {
 		ue.pages = tv.NewPages()
 	}
-	ue.urlView = NewMaskedTextView()
+	ue.urlView = component.NewMaskedTextView()
 	ue.urlView.SetMask(ue.viewMask).
 		SetDynamicColors(true)
 }

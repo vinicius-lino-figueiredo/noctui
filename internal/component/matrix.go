@@ -1,6 +1,8 @@
-package tui
+package component
 
 import (
+	"slices"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 )
@@ -15,9 +17,7 @@ import (
 func NewMatrix() *Matrix {
 	grid := tv.NewGrid()
 	buttonUp := tv.NewButton("△")
-	buttonUp.SetStyle(BtnStyle)
 	buttonDown := tv.NewButton("▽")
-	buttonDown.SetStyle(BtnStyle)
 	flex := tv.NewFlex().
 		SetDirection(tv.FlexRow).
 		AddItem(buttonUp, 0, 0, false).
@@ -63,6 +63,7 @@ type Matrix struct {
 func (m *Matrix) Focus(delegate func(tv.Primitive)) {
 	if len(m.itms) > 0 {
 		delegate(m.itms[0])
+		m.currX, m.currY = 0, 0
 	}
 }
 
@@ -214,6 +215,8 @@ func (m *Matrix) SetBackgroundColor(bg tc.Color) *Matrix {
 		box.SetBackgroundColor(bg)
 	}
 	m.Flex.SetBackgroundColor(bg)
+	m.ButtonUp.SetStyle(tc.StyleDefault.Foreground(m.fg).Background(bg))
+	m.ButtonDown.SetStyle(tc.StyleDefault.Foreground(m.fg).Background(bg))
 	return m
 }
 
@@ -224,5 +227,29 @@ func (m *Matrix) SetForegroundColor(fg tc.Color) *Matrix {
 		box.SetBorderColor(fg)
 	}
 	m.Flex.SetBorderColor(fg)
+	m.ButtonUp.SetStyle(tc.StyleDefault.Foreground(fg).Background(m.bg))
+	m.ButtonDown.SetStyle(tc.StyleDefault.Foreground(fg).Background(m.bg))
+	return m
+}
+
+func (m *Matrix) GetBackgroundColor() tc.Color {
+	return m.bg
+}
+
+func (m *Matrix) GetForegroundColor() tc.Color {
+	return m.fg
+}
+
+func (m *Matrix) GetItems() []tv.Primitive {
+	return slices.Clone(m.itms)
+}
+
+func (m *Matrix) AddItem(item tv.Primitive) *Matrix {
+	m.itms = append(m.itms, item)
+	return m
+}
+
+func (m *Matrix) Clear() *Matrix {
+	m.itms = m.itms[:0]
 	return m
 }

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"main/internal/component"
+
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
@@ -22,7 +24,7 @@ func NewReqBody() *ReqBody {
 type ReqBody struct {
 	*tview.Pages
 	editor     *tview.TextArea
-	viewer     *MaskedTextView
+	viewer     *component.MaskedTextView
 	request    *insomnium.Request
 	styleText  func(string, tc.Style) string
 	ResetFocus func()
@@ -57,7 +59,7 @@ func (rb *ReqBody) LoadEditor() {
 
 // LoadViewer initializes the viewer and its input capture behavior.
 func (rb *ReqBody) LoadViewer() {
-	rb.viewer = NewMaskedTextView()
+	rb.viewer = component.NewMaskedTextView()
 	rb.viewer.SetMask(rb.Mask).
 		SetDynamicColors(true).
 		SetInputCapture(rb.viewerCapture)
@@ -151,7 +153,7 @@ func (rb *ReqBody) SetStyle(style tc.Style) *ReqBody {
 // SetTheme applies a theme ("monokai", etc.) to the Body tab.
 func (rb *ReqBody) SetTheme(theme string) *ReqBody {
 	rb.theme = theme
-	rb.viewer.setMaskedText()
+	rb.viewer.ResetMaskedText()
 	return rb
 }
 

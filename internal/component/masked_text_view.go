@@ -1,4 +1,4 @@
-package tui
+package component
 
 import "github.com/rivo/tview"
 
@@ -30,11 +30,11 @@ func (mtv *MaskedTextView) SetMask(fn func(string) string) *MaskedTextView {
 // SetText sets the original text and updates the displayed content.
 func (mtv *MaskedTextView) SetText(text string) *MaskedTextView {
 	mtv.text = text
-	return mtv.setMaskedText()
+	return mtv.ResetMaskedText()
 }
 
-// setMaskedText updates the displayed text using the current mask.
-func (mtv *MaskedTextView) setMaskedText() *MaskedTextView {
+// ResetMaskedText updates the displayed text using the current mask.
+func (mtv *MaskedTextView) ResetMaskedText() *MaskedTextView {
 	text := mtv.text
 	if mtv.mask != nil {
 		text = mtv.mask(text)

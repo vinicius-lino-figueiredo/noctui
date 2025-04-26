@@ -15,6 +15,7 @@ package tui
 
 import (
 	"fmt"
+	"main/internal/component"
 
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
@@ -303,7 +304,7 @@ func (s *Screen) GetMethodColor(method string) tc.Color {
 
 // MatrixInputCapture will return an input capture function and will accept
 // vim motions to control the selected element in the grid.
-func (s *Screen) MatrixInputCapture(m *Matrix) InputFn {
+func (s *Screen) MatrixInputCapture(m *component.Matrix) InputFn {
 	return func(event *tc.EventKey) *tc.EventKey {
 		switch {
 		case event.Key() == tc.KeyEsc || event.Rune() == 'q':

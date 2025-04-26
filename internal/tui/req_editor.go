@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"main/internal/component"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 	"github.com/vinicius-lino-figueiredo/insomnium"
@@ -23,7 +25,7 @@ type ReqEditor struct {
 	tabs               *ReqTabs
 	bg                 tc.Color
 	fg                 tc.Color
-	MatrixInputCapture func(*Matrix) InputFn
+	MatrixInputCapture func(*component.Matrix) InputFn
 }
 
 // CreateContent initializes the layout and adds child elements. It creates the

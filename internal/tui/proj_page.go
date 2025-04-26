@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"main/internal/component"
+
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
 	"github.com/vinicius-lino-figueiredo/insomnium"
@@ -11,8 +13,8 @@ import (
 func NewProjPage(app *tv.Application, inso *insomnium.Insomnium) *ProjPage {
 	pp := &ProjPage{
 		Flex:       tv.NewFlex(),
-		ProjMatrix: NewMatrix(),
-		WrkMatrix:  NewMatrix(),
+		ProjMatrix: component.NewMatrix(),
+		WrkMatrix:  component.NewMatrix(),
 		app:        app,
 		inso:       inso,
 	}
@@ -21,13 +23,11 @@ func NewProjPage(app *tv.Application, inso *insomnium.Insomnium) *ProjPage {
 		SetWidth(1).
 		SetHeight(6).
 		SetBorder(true).
-		SetFocusFunc(pp.MatrixOnFocus(pp.ProjMatrix)).
 		SetInputCapture(pp.ProjMatrixInputCapture)
 	pp.WrkMatrix.
 		SetWidth(5).
 		SetHeight(5).
 		SetBorder(true).
-		SetFocusFunc(pp.MatrixOnFocus(pp.WrkMatrix)).
 		SetInputCapture(pp.WrkMatrixInputCapture)
 
 	pp.AddItem(pp.ProjMatrix, 0, 1, false).
@@ -46,10 +46,10 @@ type ProjPage struct {
 	app                *tv.Application
 	bg                 tc.Color
 	fg                 tc.Color
-	ProjMatrix         *Matrix
-	WrkMatrix          *Matrix
+	ProjMatrix         *component.Matrix
+	WrkMatrix          *component.Matrix
 	ResetFocus         func()
-	MatrixInputCapture func(*Matrix) InputFn
+	MatrixInputCapture func(*component.Matrix) InputFn
 	inso               *insomnium.Insomnium
 }
 
@@ -73,7 +73,7 @@ func (pp *ProjPage) PopulateProjects() {
 			SetSelectedFunc(pp.SelectProjBtn).
 			SetBorder(true).
 			SetFocusFunc(pp.FocusProjBtn(proj.ID))
-		pp.ProjMatrix.itms = append(pp.ProjMatrix.itms, projectButton)
+		pp.ProjMatrix.AddItem(projectButton)
 	}
 	pp.ProjMatrix.Refresh()
 }
@@ -127,16 +127,6 @@ func (pp *ProjPage) FocusProjBtn(id string) func() {
 	}
 }
 
-// MatrixOnFocus returns a func to be used as a callback for a Matrix focus.
-func (pp *ProjPage) MatrixOnFocus(m *Matrix) func() {
-	return func() {
-		if len(m.itms) != 0 {
-			pp.app.SetFocus(m.itms[0])
-			m.currX, m.currY = 0, 0
-		}
-	}
-}
-
 // ProjMatrixInputCapture returns a input capture func that will wait for a
 // Escape or 'q' key press and will reload all the workspaces. It will ignore
 // any other input and pass it to the default matrix input capture function.
@@ -169,13 +159,13 @@ func (pp *ProjPage) WrkMatrixInputCapture(event *tc.EventKey) *tc.EventKey {
 // workspaces whose ParentID equals the given id. When "" is passed,
 // the matrix is populated with all workspaces.
 func (pp *ProjPage) PopulateWorkspaces(id string) {
-	pp.WrkMatrix.itms = []tv.Primitive{}
+	pp.WrkMatrix.Clear()
 	for _, wrk := range pp.inso.Workspaces {
 		if id != "" && id != wrk.ParentID {
 			continue
 		}
 		btn := pp.CreateWrkBtn(wrk)
-		pp.WrkMatrix.itms = append(pp.WrkMatrix.itms, btn)
+		pp.WrkMatrix.AddItem(btn)
 	}
 	pp.WrkMatrix.Refresh()
 }
@@ -242,7 +232,7 @@ func (pp *ProjPage) SetForegroundColor(fg tc.Color) *ProjPage {
 
 // SetMatrixInputCapture sets a function that creates input capture function for
 // the given matrix.
-func (pp *ProjPage) SetMatrixInputCapture(fn func(*Matrix) InputFn) *ProjPage {
+func (pp *ProjPage) SetMatrixInputCapture(fn func(*component.Matrix) InputFn) *ProjPage {
 	pp.MatrixInputCapture = fn
 	return pp
 }
