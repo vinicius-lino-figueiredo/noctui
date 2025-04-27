@@ -234,6 +234,20 @@ func (wp *WrkPage) SetUnselectedReqTabColor(c tc.Color) *WrkPage {
 	return wp
 }
 
+// SetSelectedResponseTabColor sets the color of the selected tab in the request
+// editor tabs.
+func (wp *WrkPage) SetSelectedResponseTabColor(c tc.Color) *WrkPage {
+	wp.RightPanel.SetSelectedResponseTabColor(c)
+	return wp
+}
+
+// SetUnselectedResponseTabColor sets the color of the unselected tabs in the
+// request editor tabs.
+func (wp *WrkPage) SetUnselectedResponseTabColor(c tc.Color) *WrkPage {
+	wp.RightPanel.SetUnselectedResponseTabColor(c)
+	return wp
+}
+
 // SetHeaderInputStyle sets the style for the input fields.
 func (wp *WrkPage) SetHeaderInputStyle(style tc.Style) *WrkPage {
 	wp.MiddlePanel.SetHeaderInputStyle(style)
@@ -244,7 +258,14 @@ func (wp *WrkPage) SetHeaderInputStyle(style tc.Style) *WrkPage {
 // and background colors.
 func (wp *WrkPage) SetStyleTextFunc(fn func(string, tc.Style) string) *WrkPage {
 	wp.MiddlePanel.SetStyleTextFunc(fn)
+	wp.RightPanel.SetStyleTextFunc(fn)
 	return wp
+}
+
+// SetGetResponseBodyFunc sets the function that returns a response body.
+func (rv *WrkPage) SetGetResponseBodyFunc(fn func(*insomnium.Response) (string, error)) *WrkPage {
+	rv.RightPanel.SetGetResponseBodyFunc(fn)
+	return rv
 }
 
 // SetRequestBodyInputStyle sets the style of the request body editor text area.
@@ -257,6 +278,12 @@ func (wp *WrkPage) SetRequestBodyInputStyle(style tc.Style) *WrkPage {
 // text area.
 func (wp *WrkPage) SetRequestBodyTheme(theme string) *WrkPage {
 	wp.MiddlePanel.SetRequestBodyTheme(theme)
+	return wp
+}
+
+// SetResponseBodyTheme sets the highlighting theme of the response body viewer.
+func (wp *WrkPage) SetResponseBodyTheme(theme string) *WrkPage {
+	wp.RightPanel.SetResponseBodyTheme(theme)
 	return wp
 }
 

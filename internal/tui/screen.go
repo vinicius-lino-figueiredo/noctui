@@ -16,6 +16,8 @@ package tui
 import (
 	"fmt"
 	"main/internal/component"
+	"os"
+	"slices"
 
 	tc "github.com/gdamore/tcell/v2"
 	tv "github.com/rivo/tview"
@@ -183,6 +185,10 @@ var (
 
 	// responseFilledBarStyle is the style for the filled scrollbar segment.
 	responseFilledBarStyle = styleDefault.Foreground(tc.ColorBlue)
+
+	resBodyTheme = "catppuccin-macchiato"
+
+	responseTabUnselectedColor = tc.ColorDarkSlateGray
 )
 
 // Screen represents the TUI screen, holding the main elements of the interface.
@@ -357,9 +363,21 @@ func (s *Screen) CreateWrkScreen() *WrkPage {
 		SetResponseEmptyBarRune(responseEmptyBarRune).
 		SetResponseEmptyBarStyle(responseEmptyBarStyle).
 		SetResponseFilledBarRune(responseFilledBarRune).
-		SetResponseFilledBarStyle(responseFilledBarStyle)
+		SetResponseFilledBarStyle(responseFilledBarStyle).
+		SetGetResponseBodyFunc(s.GetResponseBody).
+		SetResponseBodyTheme(resBodyTheme).
+		SetUnselectedResponseTabColor(requestTabUnselectedColor)
 
 	return s.wrk
+}
+
+// GetResponseBody reads the response body from the file or returns an error.
+func (s *Screen) GetResponseBody(res *insomnium.Response) (string, error) {
+	if res == nil {
+		return "", nil
+	}
+	b, err := os.ReadFile(res.BodyPath)
+	return string(b), err
 }
 
 // ResponseStyleFn returns the style to display a response, based on its status
@@ -563,14 +581,25 @@ func (s *Screen) MethodHeaders(args []string) {
 }
 
 // MethodRes focuses the response dropdown for the current request.
-func (s *Screen) MethodRes(_ []string) {
+func (s *Screen) MethodRes(args []string) {
 	pageName, _ := s.pages.GetFrontPage()
 	req := s.wrk.GetRequest()
 	if pageName != "wrk" || len(s.wrk.getResponses(req)) == 0 {
 		return
 	}
-	s.wrk.RightPanel.Header.responseDropDown.SetOpen(true)
-	s.app.SetFocus(s.wrk.RightPanel.Header.responseDropDown)
+	switch {
+	case len(args) == 0:
+		s.wrk.RightPanel.Header.responseDropDown.SetOpen(true)
+		s.app.SetFocus(s.wrk.RightPanel.Header.responseDropDown)
+	case slices.Equal(args, []string{"body"}):
+		s.wrk.RightPanel.Tabs.OpenTab("Body")
+		focus := s.wrk.RightPanel.Tabs.Body
+		s.app.SetFocus(focus)
+	case slices.Equal(args, []string{"headers"}):
+		s.wrk.RightPanel.Tabs.OpenTab("Headers")
+		focus := s.wrk.RightPanel.Tabs.Headers
+		s.app.SetFocus(focus)
+	}
 }
 
 // InputFn defines a function type used by tview to capture input, taking a

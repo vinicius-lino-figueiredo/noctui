@@ -26,6 +26,7 @@ type Header struct {
 	bg         tc.Color
 	fg         tc.Color
 	focus      func(tv.Primitive)
+	focusFn    func()
 }
 
 // Load initializes all components of the Header if they are not already set.
@@ -88,6 +89,9 @@ func (h *Header) InputDoneFunc(_ tc.Key) {
 func (h *Header) Focus(fn func(tv.Primitive)) {
 	h.focus = fn
 	h.Flex.Focus(fn)
+	if h.focusFn != nil {
+		h.focusFn()
+	}
 }
 
 // InputCapture intercepts keyboard events. It cycles focus between inputs when

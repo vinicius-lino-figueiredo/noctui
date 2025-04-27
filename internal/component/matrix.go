@@ -232,23 +232,28 @@ func (m *Matrix) SetForegroundColor(fg tc.Color) *Matrix {
 	return m
 }
 
+// GetBackgroundColor returns the matrix background color.
 func (m *Matrix) GetBackgroundColor() tc.Color {
 	return m.bg
 }
 
+// GetForegroundColor returns the matrix foreground color.
 func (m *Matrix) GetForegroundColor() tc.Color {
 	return m.fg
 }
 
+// GetItems returns all the matrix items.
 func (m *Matrix) GetItems() []tv.Primitive {
 	return slices.Clone(m.itms)
 }
 
+// AddItem adds an item to the matrix.
 func (m *Matrix) AddItem(item tv.Primitive) *Matrix {
 	m.itms = append(m.itms, item)
 	return m
 }
 
+// Clear removes all the matrix items.
 func (m *Matrix) Clear() *Matrix {
 	m.itms = m.itms[:0]
 	return m
